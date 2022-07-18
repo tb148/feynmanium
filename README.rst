@@ -39,5 +39,5 @@ Usage
 .. |GitHub commit activity| image:: https://img.shields.io/github/commit-activity/m/tb148/feynmanium
 .. |GitHub issues| image:: https://img.shields.io/github/issues/tb148/feynmanium
 .. |GitHub pull requests| image:: https://img.shields.io/github/issues-pr/tb148/feynmanium
-.. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/34755bacfa0441b2a8097fc25501c144
-   :target: https://www.codacy.com/gh/tb148/feynmanium/dashboard?utm_source=github.com&utm_medium=referral&utm_content=tb148/feynmanium.py&utm_campaign=Badge_Grade
+.. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/3f036df7eb36457d8182c08085e42953
+   :target: https://www.codacy.com/gh/tb148/feynmanium/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tb148/feynmanium&amp;utm_campaign=Badge_Grade
