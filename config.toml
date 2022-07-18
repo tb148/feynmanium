@@ -196,3 +196,40 @@ name = "code"
 enbl = true
 hide = false
 desc = "Lists language codes"
+
+[game]
+name = "Games"
+desc = "Some games to play."
+glds = [255467070777458688]
+
+[game.chess]
+name = "chess"
+enbl = true
+hide = false
+desc = "Plays chess"
+lvl = "The strength of the opponent"
+fst = "Whether to play first in game"
+card = [
+    "The Fool",
+    "The Magician",
+    "The High Priestess",
+    "The Empress",
+    "The Emperor",
+    "The Hierophant",
+    "The Lovers",
+    "The Chariot",
+    "Strength",
+    "The Hermit",
+    "Wheel of Fortune",
+    "Justice",
+    "The Hanged Man",
+    "Death",
+    "Temperance",
+    "The Devil",
+    "The Tower",
+    "The Star",
+    "The Moon",
+    "The Sun",
+    "Judgement",
+    "The World",
+]
