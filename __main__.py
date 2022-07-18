@@ -22,13 +22,13 @@ parser.add_argument(
     "-v",
     "--verbose",
     action="count",
-    default=1,
+    default=0,
     help="increase output verbosity",
 )
 parser.add_argument("token", help="the token of the bot")
 arg = parser.parse_args()
 (log_file, verbose, token) = (arg.log_file, arg.verbose, arg.token)
-logging.basicConfig(level=40 - 10 * verbose, filename=log_file)
+handler = logging.FileHandler(filename=log_file, encoding="utf-8", mode="w")
 
 
 class Bot(commands.AutoShardedBot):
@@ -139,4 +139,8 @@ async def ping(ctx: commands.Context):
     )
 
 
-bot.run(token)
+bot.run(
+    token,
+    log_handler=handler,
+    log_level=logging.ERROR - verbose * logging.DEBUG,
+)
