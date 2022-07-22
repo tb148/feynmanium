@@ -11,7 +11,7 @@ Requirements
 
 Feynmanium requires:
 
--  `Python`_ v3.9 or later
+-  `Python`_ v3.10 or later
 -  `Poetry`_ v1 or later
 
 Installation
