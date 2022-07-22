@@ -1,1 +1,1 @@
-bot: python . $DISCORD_TOKEN
+bot: python . $TOKEN
