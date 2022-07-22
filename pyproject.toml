@@ -10,7 +10,7 @@ license = "AGPL-3.0-or-later"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "3.9.13"
 toml = "^0.10.2"
 sympy = "^1.10.1"
 googletrans-py = "^4.0.0"
