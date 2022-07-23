@@ -1,1 +1,1 @@
-bot: python . $TOKEN
+bot: python . $TOKEN -vvv
