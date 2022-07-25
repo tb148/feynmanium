@@ -1,5 +1,6 @@
 """The main file of the bot."""
 import argparse
+import asyncio
 import logging
 import math
 import os
@@ -7,6 +8,7 @@ import random
 
 import discord
 import toml
+import uvloop
 from discord import app_commands
 from discord.ext import commands, tasks
 
@@ -139,6 +141,7 @@ async def ping(ctx: commands.Context):
     )
 
 
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 bot.run(
     token,
     log_handler=handler,

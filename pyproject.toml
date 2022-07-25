@@ -18,6 +18,7 @@ mpmath = "^1.2.1"
 "discord.py" = { git = "https://github.com/Rapptz/discord.py.git" }
 chess = "^1.9.2"
 CairoSVG = "^2.5.2"
+uvloop = "^0.16.0"
 
 [tool.poetry.dev-dependencies]
 pylama = { extras = ["all"], version = "^8.3.8" }
