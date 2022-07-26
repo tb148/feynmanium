@@ -18,7 +18,7 @@ def pretty_eq(lhs, rhs):
     return f"```\n{result}\n```"
 
 
-class MathCog(
+class MathCog(  # type: ignore[call-arg]
     commands.Cog,
     name=config["math"]["name"],
     description=config["math"]["desc"],

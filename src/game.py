@@ -23,9 +23,12 @@ async def get_move(board: chess.Board, level: int) -> chess.Move:
     _, stockfish = await engine.popen_uci("stockfish/stockfish_14_x64")
     result = await stockfish.play(
         board, chess.engine.Limit(depth=16), options={"Skill Level": level - 1}
-    ).move
+    )
     await stockfish.quit()
-    return result
+    if result.move is not None:
+        return result.move
+    else:
+        return chess.Move.null()
 
 
 def get_svg(board: chess.Board, color: chess.Color) -> str:
@@ -69,30 +72,35 @@ class ChessView(ui.View):
         else:
             game.headers["White"] = config["game"]["chess"]["card"][self.level]
             game.headers["Black"] = self.user.name
-        return str(game)
+        return game
 
     def update_src(self, default: str):
         """Updates the options after selecting a source."""
         squares = {move.from_square for move in self.board.legal_moves}
-        self.children[0].options = [
-            discord.SelectOption(
-                label=chess.square_name(square),
-                description=chess.piece_name(self.board.piece_type_at(square)),
-                default=(chess.square_name(square) == default),
-            )
-            for square in squares
-        ]
-        self.children[0].disabled = False
+        self.src.options = []
+        for square in squares:
+            piece = self.board.piece_type_at(square)
+            if piece is not None:
+                self.src.options.append(
+                    discord.SelectOption(
+                        label=chess.square_name(square),
+                        description=chess.piece_name(piece),
+                        default=(chess.square_name(square) == default),
+                    )
+                )
+        if not self.src.options:
+            self.src.options = dummy
+        self.src.disabled = False
 
     def update_dest(self):
         """Updates the options after selecting a target."""
         if self.board.is_game_over():
-            self.children[0].options = dummy
-            self.children[0].disabled = True
+            self.src.options = dummy
+            self.src.disabled = True
         else:
             self.update_src("")
-        self.children[1].options = dummy
-        self.children[1].disabled = True
+        self.dest.options = dummy
+        self.dest.disabled = True
 
     async def make_move(self):
         """Makes a move."""
@@ -112,14 +120,14 @@ class ChessView(ui.View):
             return
         await interaction.response.defer()
         self.update_src(select.values[0])
-        self.children[1].options = [
+        self.dest.options = [
             discord.SelectOption(
                 label=self.board.san(move), description=self.board.lan(move)
             )
             for move in self.board.legal_moves
             if move.from_square == chess.parse_square(select.values[0])
         ]
-        self.children[1].disabled = False
+        self.dest.disabled = False
         await interaction.edit_original_message(view=self)
 
     @ui.select(options=dummy, placeholder="Select the target square", row=1)
@@ -140,13 +148,13 @@ class ChessView(ui.View):
                     ),
                     "board.png",
                 ),
-                discord.File(io.StringIO(self.get_pgn()), "game.pgn"),
+                discord.File(str(self.get_pgn()), "game.pgn"),
             ],
             view=self,
         )
 
 
-class ChessCog(
+class ChessCog(  # type: ignore[call-arg]
     commands.Cog,
     name=config["game"]["name"],
     description=config["game"]["desc"],
@@ -185,7 +193,7 @@ class ChessCog(
                     io.BytesIO(cairosvg.svg2png(get_svg(view.board, fst))),
                     "board.png",
                 ),
-                discord.File(io.StringIO(view.get_pgn()), "game.pgn"),
+                discord.File(str(view.get_pgn()), "game.pgn"),
             ],
             view=view,
         )
@@ -210,7 +218,11 @@ class ChessCog(
         if score == engine.Mate(0):
             result = "#"
         elif score.is_mate():
-            result = "#" + score.mate()
+            mate = score.mate()
+            if mate is not None:
+                result = "#" + str(mate)
+            else:
+                result = "#-0"
         else:
             result = str(score.score()) + "cp"
         await ctx.send(
