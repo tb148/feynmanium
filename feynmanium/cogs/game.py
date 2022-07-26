@@ -157,7 +157,7 @@ class ChessView(ui.View):
         )
 
 
-class ChessCog(  # type: ignore[call-arg]
+class GameCog(  # type: ignore[call-arg]
     commands.Cog,
     name=config["game"]["name"],
     description=config["game"]["desc"],
@@ -242,4 +242,4 @@ class ChessCog(  # type: ignore[call-arg]
 
 async def setup(bot):
     """Sets up the extension."""
-    await bot.add_cog(ChessCog(bot))
+    await bot.add_cog(GameCog(bot))

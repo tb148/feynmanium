@@ -18,10 +18,10 @@ def pretty_eq(lhs, rhs):
     return f"```\n{result}\n```"
 
 
-class MathCog(  # type: ignore[call-arg]
+class CalcCog(  # type: ignore[call-arg]
     commands.Cog,
-    name=config["math"]["name"],
-    description=config["math"]["desc"],
+    name=config["calc"]["name"],
+    description=config["calc"]["desc"],
 ):
     """Mathematical commands."""
 
@@ -30,14 +30,14 @@ class MathCog(  # type: ignore[call-arg]
         self.bot = bot
 
     @commands.hybrid_group(
-        name=config["math"]["simpl"]["name"],
-        enabled=config["math"]["simpl"]["enbl"],
-        hidden=config["math"]["simpl"]["hide"],
-        help=config["math"]["simpl"]["desc"],
-        fallback=config["math"]["simpl"]["name"],
+        name=config["calc"]["simpl"]["name"],
+        enabled=config["calc"]["simpl"]["enbl"],
+        hidden=config["calc"]["simpl"]["hide"],
+        help=config["calc"]["simpl"]["desc"],
+        fallback=config["calc"]["simpl"]["name"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
-    @app_commands.describe(expr=config["math"]["simpl"]["expr"])
+    @app_commands.guilds(*config["calc"]["glds"])
+    @app_commands.describe(expr=config["calc"]["simpl"]["expr"])
     async def simpl(self, ctx: commands.Context, *, expr: str):
         """Simplifies expressions."""
         raw_expr = parse_raw(expr)
@@ -46,64 +46,64 @@ class MathCog(  # type: ignore[call-arg]
         )
 
     @simpl.command(
-        name=config["math"]["expn"]["name"],
-        enabled=config["math"]["expn"]["enbl"],
-        hidden=config["math"]["expn"]["hide"],
-        help=config["math"]["expn"]["desc"],
+        name=config["calc"]["expn"]["name"],
+        enabled=config["calc"]["expn"]["enbl"],
+        hidden=config["calc"]["expn"]["hide"],
+        help=config["calc"]["expn"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
-    @app_commands.describe(expr=config["math"]["expn"]["expr"])
+    @app_commands.guilds(*config["calc"]["glds"])
+    @app_commands.describe(expr=config["calc"]["expn"]["expr"])
     async def expn(self, ctx: commands.Context, *, expr: str):
         """Expands expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(pretty_eq(raw_expr, sympy.expand(raw_expr)))
 
     @simpl.command(
-        name=config["math"]["fact"]["name"],
-        enabled=config["math"]["fact"]["enbl"],
-        hidden=config["math"]["fact"]["hide"],
-        help=config["math"]["fact"]["desc"],
+        name=config["calc"]["fact"]["name"],
+        enabled=config["calc"]["fact"]["enbl"],
+        hidden=config["calc"]["fact"]["hide"],
+        help=config["calc"]["fact"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
-    @app_commands.describe(expr=config["math"]["fact"]["expr"])
+    @app_commands.guilds(*config["calc"]["glds"])
+    @app_commands.describe(expr=config["calc"]["fact"]["expr"])
     async def fact(self, ctx: commands.Context, *, expr: str):
         """Factors expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(pretty_eq(raw_expr, sympy.factor(raw_expr)))
 
     @simpl.command(
-        name=config["math"]["apart"]["name"],
-        enabled=config["math"]["apart"]["enbl"],
-        hidden=config["math"]["apart"]["hide"],
-        help=config["math"]["apart"]["desc"],
+        name=config["calc"]["apart"]["name"],
+        enabled=config["calc"]["apart"]["enbl"],
+        hidden=config["calc"]["apart"]["hide"],
+        help=config["calc"]["apart"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
-    @app_commands.describe(expr=config["math"]["apart"]["expr"])
+    @app_commands.guilds(*config["calc"]["glds"])
+    @app_commands.describe(expr=config["calc"]["apart"]["expr"])
     async def apart(self, ctx: commands.Context, *, expr: str):
         """Factors expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(pretty_eq(raw_expr, sympy.apart(raw_expr)))
 
     @commands.hybrid_group(
-        name=config["math"]["calc"]["name"],
-        enabled=config["math"]["calc"]["enbl"],
-        hidden=config["math"]["calc"]["hide"],
-        help=config["math"]["calc"]["desc"],
+        name=config["calc"]["calc"]["name"],
+        enabled=config["calc"]["calc"]["enbl"],
+        hidden=config["calc"]["calc"]["hide"],
+        help=config["calc"]["calc"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     async def calc(self, ctx: commands.Context, cmd: str):
         """Does calculus."""
         raise commands.CommandNotFound(f'Command "{cmd}" is not found')
 
     @calc.command(
-        name=config["math"]["diff"]["name"],
-        enabled=config["math"]["diff"]["enbl"],
-        hidden=config["math"]["diff"]["hide"],
-        help=config["math"]["diff"]["desc"],
+        name=config["calc"]["diff"]["name"],
+        enabled=config["calc"]["diff"]["enbl"],
+        hidden=config["calc"]["diff"]["hide"],
+        help=config["calc"]["diff"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        var=config["math"]["diff"]["var"], expr=config["math"]["diff"]["expr"]
+        var=config["calc"]["diff"]["var"], expr=config["calc"]["diff"]["expr"]
     )
     async def diff(self, ctx: commands.Context, var: str = "x", *, expr: str):
         """Takes derivatives."""
@@ -117,14 +117,14 @@ class MathCog(  # type: ignore[call-arg]
         )
 
     @calc.command(
-        name=config["math"]["adiff"]["name"],
-        enabled=config["math"]["adiff"]["enbl"],
-        hidden=config["math"]["adiff"]["hide"],
-        help=config["math"]["adiff"]["desc"],
+        name=config["calc"]["adiff"]["name"],
+        enabled=config["calc"]["adiff"]["enbl"],
+        hidden=config["calc"]["adiff"]["hide"],
+        help=config["calc"]["adiff"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        var=config["math"]["adiff"]["var"], expr=config["math"]["adiff"]["expr"]
+        var=config["calc"]["adiff"]["var"], expr=config["calc"]["adiff"]["expr"]
     )
     async def adiff(self, ctx: commands.Context, var: str = "x", *, expr: str):
         """Integrates."""
@@ -138,16 +138,16 @@ class MathCog(  # type: ignore[call-arg]
         )
 
     @calc.command(
-        name=config["math"]["limit"]["name"],
-        enabled=config["math"]["limit"]["enbl"],
-        hidden=config["math"]["limit"]["hide"],
-        help=config["math"]["limit"]["desc"],
+        name=config["calc"]["limit"]["name"],
+        enabled=config["calc"]["limit"]["enbl"],
+        hidden=config["calc"]["limit"]["hide"],
+        help=config["calc"]["limit"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        pos=config["math"]["limit"]["pos"],
-        var=config["math"]["limit"]["var"],
-        expr=config["math"]["limit"]["expr"],
+        pos=config["calc"]["limit"]["pos"],
+        var=config["calc"]["limit"]["var"],
+        expr=config["calc"]["limit"]["expr"],
     )
     async def limit(
         self, ctx: commands.Context, pos: str, var: str = "x", *, expr: str
@@ -164,15 +164,15 @@ class MathCog(  # type: ignore[call-arg]
         )
 
     @commands.hybrid_group(
-        name=config["math"]["solve"]["name"],
-        enabled=config["math"]["solve"]["enbl"],
-        hidden=config["math"]["solve"]["hide"],
-        help=config["math"]["solve"]["desc"],
-        fallback=config["math"]["solve"]["name"],
+        name=config["calc"]["solve"]["name"],
+        enabled=config["calc"]["solve"]["enbl"],
+        hidden=config["calc"]["solve"]["hide"],
+        help=config["calc"]["solve"]["desc"],
+        fallback=config["calc"]["solve"]["name"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        var=config["math"]["solve"]["var"], expr=config["math"]["solve"]["expr"]
+        var=config["calc"]["solve"]["var"], expr=config["calc"]["solve"]["expr"]
     )
     async def solve(self, ctx: commands.Context, var: str = "x", *, expr: str):
         """Solves equations."""
@@ -188,14 +188,14 @@ class MathCog(  # type: ignore[call-arg]
         )
 
     @solve.command(
-        name=config["math"]["ineq"]["name"],
-        enabled=config["math"]["ineq"]["enbl"],
-        hidden=config["math"]["ineq"]["hide"],
-        help=config["math"]["ineq"]["desc"],
+        name=config["calc"]["ineq"]["name"],
+        enabled=config["calc"]["ineq"]["enbl"],
+        hidden=config["calc"]["ineq"]["hide"],
+        help=config["calc"]["ineq"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        var=config["math"]["ineq"]["var"], expr=config["math"]["ineq"]["expr"]
+        var=config["calc"]["ineq"]["var"], expr=config["calc"]["ineq"]["expr"]
     )
     async def ineq(self, ctx: commands.Context, var: str = "x", *, expr: str):
         """Solves inequalities."""
@@ -209,14 +209,14 @@ class MathCog(  # type: ignore[call-arg]
         )
 
     @solve.command(
-        name=config["math"]["roots"]["name"],
-        enabled=config["math"]["roots"]["enbl"],
-        hidden=config["math"]["roots"]["hide"],
-        help=config["math"]["roots"]["desc"],
+        name=config["calc"]["roots"]["name"],
+        enabled=config["calc"]["roots"]["enbl"],
+        hidden=config["calc"]["roots"]["hide"],
+        help=config["calc"]["roots"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        var=config["math"]["roots"]["var"], expr=config["math"]["roots"]["expr"]
+        var=config["calc"]["roots"]["var"], expr=config["calc"]["roots"]["expr"]
     )
     async def roots(self, ctx: commands.Context, var: str = "x", *, expr: str):
         """Finds roots of polynomials."""
@@ -234,14 +234,14 @@ class MathCog(  # type: ignore[call-arg]
             await ctx.send(f"```\n{result}\n```")
 
     @solve.command(
-        name=config["math"]["dsolv"]["name"],
-        enabled=config["math"]["dsolv"]["enbl"],
-        hidden=config["math"]["dsolv"]["hide"],
-        help=config["math"]["dsolv"]["desc"],
+        name=config["calc"]["dsolv"]["name"],
+        enabled=config["calc"]["dsolv"]["enbl"],
+        hidden=config["calc"]["dsolv"]["hide"],
+        help=config["calc"]["dsolv"]["desc"],
     )
-    @app_commands.guilds(*config["math"]["glds"])
+    @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(
-        var=config["math"]["dsolv"]["var"], expr=config["math"]["dsolv"]["expr"]
+        var=config["calc"]["dsolv"]["var"], expr=config["calc"]["dsolv"]["expr"]
     )
     async def dsolv(self, ctx: commands.Context, var: str = "x", *, expr: str):
         """Solves differential equations."""
@@ -263,4 +263,4 @@ class MathCog(  # type: ignore[call-arg]
 
 async def setup(bot):
     """Sets up the extension."""
-    await bot.add_cog(MathCog(bot))
+    await bot.add_cog(CalcCog(bot))

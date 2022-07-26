@@ -75,46 +75,46 @@ enbl = true
 hide = false
 desc = "Tests the latency"
 
-[math]
+[calc]
 name = "Mathematics"
 desc = "Mathematical commands"
 glds = [255467070777458688]
 
-[math.simpl]
+[calc.simpl]
 name = "simpl"
 enbl = true
 hide = false
 desc = "Simplifies expressions"
 expr = "The expression to simplify"
 
-[math.expn]
+[calc.expn]
 name = "expn"
 enbl = true
 hide = false
 desc = "Expands expressions"
 expr = "The expression to expand"
 
-[math.fact]
+[calc.fact]
 name = "fact"
 enbl = true
 hide = false
 desc = "Factors expressions"
 expr = "The expression to factor"
 
-[math.apart]
+[calc.apart]
 name = "apart"
 enbl = true
 hide = false
 desc = "Decomposes partial fractions"
 expr = "The expression to decompose"
 
-[math.calc]
+[calc.calc]
 name = "calc"
 enbl = true
 hide = false
 desc = "Does calculus"
 
-[math.diff]
+[calc.diff]
 name = "diff"
 enbl = true
 hide = false
@@ -122,7 +122,7 @@ desc = "Differentiates"
 var = "The argument to differentiate"
 expr = "The function to differentiate"
 
-[math.adiff]
+[calc.adiff]
 name = "adiff"
 enbl = true
 hide = false
@@ -130,7 +130,7 @@ desc = "Integrates"
 var = "The argument to integrate"
 expr = "The function to integrate"
 
-[math.limit]
+[calc.limit]
 name = "limit"
 enbl = true
 hide = false
@@ -139,7 +139,7 @@ pos = "The position to compute limits"
 var = "The argument to compute limits"
 expr = "The function to compute limits"
 
-[math.solve]
+[calc.solve]
 name = "solve"
 enbl = true
 hide = false
@@ -147,7 +147,7 @@ desc = "Solves equations"
 var = "The variable to solve for"
 expr = "The function to solve"
 
-[math.ineq]
+[calc.ineq]
 name = "ineq"
 enbl = true
 hide = false
@@ -155,7 +155,7 @@ desc = "Solves inequalities"
 var = "The variable to solve for"
 expr = "The inequality to solve"
 
-[math.roots]
+[calc.roots]
 name = "roots"
 enbl = true
 hide = false
@@ -163,7 +163,7 @@ desc = "Finds roots of polynomials"
 var = "The variable to solve"
 expr = "The polynomial to find roots"
 
-[math.dsolv]
+[calc.dsolv]
 name = "dsolv"
 enbl = true
 hide = false
