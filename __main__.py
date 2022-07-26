@@ -39,19 +39,16 @@ class Bot(commands.AutoShardedBot):
     async def on_command_error(self, ctx: commands.Context, err, /):
         """Sends an error message."""
         await super().on_command_error(ctx, err)
-        await ctx.send(
-            "{}\n```{}: {}```".format(
-                random.choice(config["bot"]["err-msgs"]),
-                err.__class__.__name__,
-                err,
-            )
-        )
+        err_msg = random.choice(config["bot"]["err-msgs"])
+        err_type = err.__class__.__name__
+        await ctx.send(f"{err_msg}\n```{err_type}: {err}```")
 
     async def setup_hook(self):
         """Sets up the bot."""
         for filename in os.listdir("./src"):
             if filename.endswith(".py"):
-                await self.load_extension("src.{}".format(filename[:-3]))
+                ext = filename[:-3]
+                await self.load_extension(f"src.{ext}")
         for guild in config["bot"]["bot-glds"]:
             await self.tree.sync(guild=discord.Object(guild))
         status.start()
@@ -94,11 +91,11 @@ async def roll(
     cnt: commands.Range[int, 1, 400] = 1,
 ):
     """Rolls dice."""
-    ans = [random.randrange(1, siz + 1) for _ in range(cnt)]
+    result = [random.randrange(1, siz + 1) for _ in range(cnt)]
+    total = sum(result)
+    res_str = ", ".join([str(_) for _ in result])
     await ctx.send(
-        "You rolled {}d{} and get a {}!\n```\n{}\n```".format(
-            cnt, siz, sum(ans), ", ".join([str(_) for _ in ans])
-        )
+        f"You rolled {cnt}d{siz} and get a {total}!\n```\n{res_str}\n```"
     )
 
 
@@ -112,9 +109,8 @@ async def roll(
 @app_commands.describe(qry=config["bot"]["8ball"]["qry"])
 async def eight_ball(ctx: commands.Context, *, qry: str = "Is it?"):
     """Asks the magic 8-ball."""
-    await ctx.send(
-        "> {}\n{}".format(qry, random.choice(config["bot"]["8ball"]["msgs"]))
-    )
+    result = random.choice(config["bot"]["8ball"]["msgs"])
+    await ctx.send(f"> {qry}\n{result}")
 
 
 @bot.hybrid_command(
@@ -126,19 +122,8 @@ async def eight_ball(ctx: commands.Context, *, qry: str = "Is it?"):
 @app_commands.guilds(*config["bot"]["bot-glds"])
 async def ping(ctx: commands.Context):
     """Tests the latency."""
-    await ctx.send(
-        "Pong! The ping took {} ms.\n{}".format(
-            math.ceil(bot.latency * 1000),
-            "\n".join(
-                [
-                    "Pinging shard {} took {} ms.".format(
-                        shard_id, math.ceil(latency * 1000)
-                    )
-                    for (shard_id, latency) in bot.latencies
-                ]
-            ),
-        )
-    )
+    result = math.ceil(bot.latency * 1000)
+    await ctx.send(f"Pong! The ping took {result} ms.")
 
 
 asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())

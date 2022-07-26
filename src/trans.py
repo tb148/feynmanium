@@ -35,15 +35,12 @@ class TransCog(
         self, ctx: commands.Context, dest: str, src: str = "auto", *, text: str
     ):
         """Translates text."""
-        res = trans.translate(text, dest, src)
-        await ctx.send(
-            "{}:\n> {}\n{}:\n> {}".format(
-                googletrans.LANGUAGES[res.src],
-                res.origin,
-                googletrans.LANGUAGES[res.dest],
-                res.text,
-            )
-        )
+        result = trans.translate(text, dest, src)
+        res_src = googletrans.LANGUAGES[result.src]
+        res_origin = result.origin
+        res_dest = googletrans.LANGUAGES[result.dest]
+        res_text = result.text
+        await ctx.send(f"{res_src}:\n> {res_origin}\n{res_dest}:\n> {res_text}")
 
     @commands.hybrid_command(
         name=config["trans"]["lang"]["name"],
@@ -55,10 +52,9 @@ class TransCog(
     @app_commands.describe(text=config["trans"]["lang"]["text"])
     async def lang(self, ctx: commands.Context, *, text: str):
         """Detects language of text."""
-        res = trans.detect(text)
-        await ctx.send(
-            "{}:\n> {}".format(googletrans.LANGUAGES[res.lang], text)
-        )
+        result = trans.detect(text)
+        res_lang = googletrans.LANGUAGES[result.lang]
+        await ctx.send(f"{res_lang}:\n> {text}")
 
     @commands.hybrid_command(
         name=config["trans"]["code"]["name"],
@@ -69,16 +65,14 @@ class TransCog(
     @app_commands.guilds(*config["trans"]["glds"])
     async def code(self, ctx):
         """Lists language codes."""
-        await ctx.send(
-            "Available language codes:\n{}".format(
-                ", ".join(
-                    [
-                        "{} - {}".format(key, value)
-                        for (key, value) in googletrans.LANGUAGES.items()
-                    ]
-                )
-            )
+        result = ", ".join(
+            [
+                f"{key} - {value}"
+                for (key, value) in googletrans.LANGUAGES.items()
+            ]
         )
+
+        await ctx.send(f"Available language codes:\n{result}")
 
 
 async def setup(bot):

@@ -14,9 +14,8 @@ def parse_raw(expr: str):
 
 def pretty_eq(lhs, rhs):
     """Pretty prints an equality."""
-    return "```\n{}\n```".format(
-        sympy.pretty(sympy.Eq(lhs, rhs, evaluate=False), use_unicode=False)
-    )
+    result = sympy.pretty(sympy.Eq(lhs, rhs, evaluate=False), use_unicode=False)
+    return f"```\n{result}\n```"
 
 
 class MathCog(
@@ -94,7 +93,7 @@ class MathCog(
     @app_commands.guilds(*config["math"]["glds"])
     async def calc(self, ctx: commands.Context, cmd: str):
         """Does calculus."""
-        raise commands.CommandNotFound('Command "{}" is not found'.format(cmd))
+        raise commands.CommandNotFound(f'Command "{cmd}" is not found')
 
     @calc.command(
         name=config["math"]["diff"]["name"],
@@ -223,25 +222,16 @@ class MathCog(
         """Finds roots of polynomials."""
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
-        root = sympy.roots(raw_expr, raw_var, quintics=True, multiple=True)
-        if len(root) == 0:
-            await ctx.send(
-                "Cannot find roots on `{}` of\n```\n{}\n```".format(
-                    var.strip("`").replace("\\", ""),
-                    sympy.pretty(raw_expr, use_unicode=False),
-                )
-            )
+        res_var = var.strip("`").replace("\\", "")
+        res_expr = expr.strip("`").replace("\\", "")
+        roots = sympy.roots(raw_expr, raw_var, quintics=True, multiple=True)
+        if len(roots) == 0:
+            await ctx.send(f"Cannot find roots of `{res_var}` on `{res_expr}`")
             return
-        await ctx.send(
-            "The roots of `{}` on `{}` are".format(
-                expr.strip("`").replace("\\", ""),
-                var.strip("`").replace("\\", ""),
-            )
-        )
-        for _ in root:
-            await ctx.send(
-                "```\n{}\n```".format(sympy.pretty(_, use_unicode=False))
-            )
+        await ctx.send(f"The roots of `{res_var}` on `{res_expr}` are")
+        for root in roots:
+            result = sympy.pretty(root, use_unicode=False)
+            await ctx.send(f"```\n{result}\n```")
 
     @solve.command(
         name=config["math"]["dsolv"]["name"],
