@@ -14,7 +14,6 @@ authors = ["Tony Brown <tb148@tuta.io>"]
 license = "AGPL-3.0-or-later"
 readme = "README.rst"
 repository = "https://github.com/tb148/feynmanium"
-packages = [{ include = "feynmanium", from = "src" }]
 include = ["README.rst"]
 
 [tool.poetry.dependencies]
