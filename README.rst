@@ -3,6 +3,7 @@ Feynmanium
 
 |GitHub| |GitHub contributors| |GitHub commit activity|
 |GitHub issues| |GitHub pull requests| |Codacy Badge|
+|Linting pylint|
 
 A `Discord`_ bot that works.
 
@@ -41,3 +42,5 @@ Usage
 .. |GitHub pull requests| image:: https://img.shields.io/github/issues-pr/tb148/feynmanium
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/3f036df7eb36457d8182c08085e42953
    :target: https://www.codacy.com/gh/tb148/feynmanium/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tb148/feynmanium&amp;utm_campaign=Badge_Grade
+.. |Linting pylint| image:: https://img.shields.io/badge/linting-pylint-yellowgreen
+   :target: https://github.com/PyCQA/pylint
