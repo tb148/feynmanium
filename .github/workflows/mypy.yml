@@ -1,4 +1,4 @@
-name: Pylint
+name: mypy
 
 on: [push]
 
@@ -20,6 +20,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - name: Analysing the code with pylint
+      - name: Analysing the code with mypy
         run: |
-          poetry run pylint feynmanium
+          poetry run mypy feynmanium

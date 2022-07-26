@@ -6,6 +6,16 @@ target-version = ['py310']
 [tool.isort]
 profile = "black"
 
+[tool.mypy]
+show_error_context = true
+show_column_numbers = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = ["cairosvg", "discord.ext", "googletrans"]
+ignore_missing_imports = true
+
 [tool.poetry]
 name = "feynmanium"
 version = "0.1.0"
