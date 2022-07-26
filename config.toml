@@ -1,11 +1,12 @@
 [bot]
 log-file = "feynman.log"
-bot-glds = [255467070777458688]
 err-msgs = [
     "What are you expecting me to say?",
     "What am I expected to do then?",
     "Wait what? Are you serious?",
 ]
+bot-exts = ["game", "math", "trans"]
+bot-glds = [255467070777458688]
 rdy-msgs = [
     "Feynman is wholly ready!",
     "Feynman is now waiting.",

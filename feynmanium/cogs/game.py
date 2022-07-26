@@ -139,8 +139,9 @@ class ChessView(ui.View):
         self.board.push_san(select.values[0])
         await self.make_move()
         self.update_dest()
+        fen = self.board.fen()
         await interaction.edit_original_message(
-            content=self.board.fen(),
+            content=f"`{fen}`",
             attachments=[
                 discord.File(
                     io.BytesIO(
@@ -148,7 +149,9 @@ class ChessView(ui.View):
                     ),
                     "board.png",
                 ),
-                discord.File(str(self.get_pgn()), "game.pgn"),
+                discord.File(
+                    io.BytesIO(bytes(str(self.get_pgn()), "utf-8")), "game.pgn"
+                ),
             ],
             view=self,
         )
@@ -186,14 +189,17 @@ class ChessCog(  # type: ignore[call-arg]
             fst = bool(random.randrange(2))
         view = ChessView(chess.Board(), fst, lvl, user=ctx.author)
         await view.make_move()
+        fen = view.board.fen()
         view.message = await ctx.send(
-            view.board.fen(),
+            f"`{fen}`",
             files=[
                 discord.File(
                     io.BytesIO(cairosvg.svg2png(get_svg(view.board, fst))),
                     "board.png",
                 ),
-                discord.File(str(view.get_pgn()), "game.pgn"),
+                discord.File(
+                    io.BytesIO(bytes(str(view.get_pgn()), "utf-8")), "game.pgn"
+                ),
             ],
             view=view,
         )

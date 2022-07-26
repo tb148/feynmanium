@@ -3,14 +3,13 @@ import argparse
 import asyncio
 import logging
 import math
-import os
 import random
 
 import discord
 import toml
 import uvloop
 from discord import app_commands
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks  # type: ignore[attr-defined]
 
 config = toml.load("config.toml")
 parser = argparse.ArgumentParser()
@@ -45,10 +44,8 @@ class Bot(commands.AutoShardedBot):
 
     async def setup_hook(self):
         """Sets up the bot."""
-        for filename in os.listdir("./src"):
-            if filename.endswith(".py"):
-                ext = filename[:-3]
-                await self.load_extension(f"src.{ext}")
+        for ext in config["bot"]["bot-exts"]:
+            await self.load_extension(f"cogs.{ext}")
         for guild in config["bot"]["bot-glds"]:
             await self.tree.sync(guild=discord.Object(guild))
         status.start()
