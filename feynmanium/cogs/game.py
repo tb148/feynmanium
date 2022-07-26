@@ -27,8 +27,7 @@ async def get_move(board: chess.Board, level: int) -> chess.Move:
     await stockfish.quit()
     if result.move is not None:
         return result.move
-    else:
-        return chess.Move.null()
+    return chess.Move.null()
 
 
 def get_svg(board: chess.Board, color: chess.Color) -> str:
