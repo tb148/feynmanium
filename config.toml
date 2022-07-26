@@ -5,7 +5,7 @@ err-msgs = [
     "What am I expected to do then?",
     "Wait what? Are you serious?",
 ]
-bot-exts = ["game", "math", "trans"]
+bot-exts = ["game", "calc", "trans"]
 bot-glds = [255467070777458688]
 rdy-msgs = [
     "Feynman is wholly ready!",
