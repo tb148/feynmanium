@@ -57,7 +57,6 @@ class ChessView(ui.View):
         self.user, self.message = user, None
         self.board, self.color, self.level = board, color, level
         super().__init__(timeout=timeout)
-        self.update_dest()
 
     def get_pgn(self) -> pgn.Game:
         """Get the PGN of the game."""
@@ -189,6 +188,7 @@ class GameCog(  # type: ignore[call-arg]
             fst = bool(secrets.randbelow(2))
         view = ChessView(chess.Board(), fst, lvl, user=ctx.author)
         await view.make_move()
+        view.update_dest()
         fen = view.board.fen()
         view.message = await ctx.send(
             f"`{fen}`",
