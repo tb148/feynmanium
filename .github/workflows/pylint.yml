@@ -22,4 +22,4 @@ jobs:
           poetry install
       - name: Analysing the code with pylint
         run: |
-          poetry run pylint feynmanium
+          poetry run pylint --recursive=y feynmanium

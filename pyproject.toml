@@ -48,6 +48,10 @@ isort = { extras = [
 pylint = "^2.14.5"
 mypy = "^0.971"
 types-toml = "^0.10.8"
+flake8 = "^4.0.1"
+
+[tool.pylint.format]
+max-line-length = 80
 
 [build-system]
 requires = ["poetry-core"]
