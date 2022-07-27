@@ -11,27 +11,29 @@ Requirements
 Feynmanium requires:
 
 -  `Python`_ v3.10 or later
--  `Poetry`_ v1 or later
 
 Installation
 ------------
 
-Use the package manager `Poetry`_ to install dependencies.
+Run the following command to install Feynmanium.
 
 ::
 
-   poetry install
+   # Linux/macOS
+   python3 -m pip install -U feynmanium
+
+   # Windows
+   py -3 -m pip install -U feynmanium
 
 Usage
 -----
 
 ::
 
-   python .
+   python -m feynmanium <token>
 
 .. _Discord: https://discord.com/
 .. _Python: https://python.org/
-.. _Poetry: https://python-poetry.org/
 
 .. |Codacy Badge| image:: https://app.codacy.com/project/badge/Grade/3f036df7eb36457d8182c08085e42953
    :target: https://www.codacy.com/gh/tb148/feynmanium/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tb148/feynmanium&amp;utm_campaign=Badge_Grade
