@@ -8,7 +8,7 @@ config = toml.load("config.toml")
 trans = googletrans.Translator()
 
 
-class TransCog(# type: ignore[call-arg]
+class TransCog(  # type: ignore[call-arg]
     commands.Cog,
     name=config["trans"]["name"],
     description=config["trans"]["desc"],

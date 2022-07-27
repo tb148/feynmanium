@@ -229,9 +229,9 @@ class GameCog(  # type: ignore[call-arg]
             else:
                 result = "#-0"
         else:
-            result = str(score.score()) + "cp"
+            result = str(score.score())
         await ctx.send(
-            f"White has an advantage of {result}, which is a {wdl}% probability of winning.",
+            f"{result} ~{wdl}%",
             file=discord.File(
                 io.BytesIO(cairosvg.svg2png(get_svg(board, chess.WHITE))),
                 "board.png",
