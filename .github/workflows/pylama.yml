@@ -1,9 +1,9 @@
-name: Pylint
+name: Pylama
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,6 +20,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - name: Analysing the code with pylint
+      - name: Analysing the code with Pylama
         run: |
-          poetry run pylint --recursive=y feynmanium
+          poetry run pylama feynmanium

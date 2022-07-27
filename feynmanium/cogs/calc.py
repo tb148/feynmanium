@@ -1,19 +1,20 @@
 """Mathematical commands."""
 import sympy
-import toml
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands  # type: ignore[attr-defined]
 
-config = toml.load("config.toml")
+from .. import base
+
+config = base.config
 
 
 def parse_raw(expr: str):
-    """Turns the expression into the required format."""
+    """Turn the expression into the required format."""
     return sympy.S(expr.strip("`").replace("\\", ""), evaluate=False)
 
 
 def pretty_eq(lhs, rhs):
-    """Pretty prints an equality."""
+    """Pretty print an equality."""
     result = sympy.pretty(sympy.Eq(lhs, rhs, evaluate=False), use_unicode=False)
     return f"```\n{result}\n```"
 
@@ -39,7 +40,7 @@ class CalcCog(  # type: ignore[call-arg]
     @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(expr=config["calc"]["simpl"]["expr"])
     async def simpl(self, ctx: commands.Context, *, expr: str):
-        """Simplifies expressions."""
+        """Simplify expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(
             pretty_eq(raw_expr, sympy.simplify(raw_expr, ratio=sympy.oo))
@@ -54,7 +55,7 @@ class CalcCog(  # type: ignore[call-arg]
     @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(expr=config["calc"]["expn"]["expr"])
     async def expn(self, ctx: commands.Context, *, expr: str):
-        """Expands expressions."""
+        """Expand expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(pretty_eq(raw_expr, sympy.expand(raw_expr)))
 
@@ -67,7 +68,7 @@ class CalcCog(  # type: ignore[call-arg]
     @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(expr=config["calc"]["fact"]["expr"])
     async def fact(self, ctx: commands.Context, *, expr: str):
-        """Factors expressions."""
+        """Factor expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(pretty_eq(raw_expr, sympy.factor(raw_expr)))
 
@@ -80,7 +81,7 @@ class CalcCog(  # type: ignore[call-arg]
     @app_commands.guilds(*config["calc"]["glds"])
     @app_commands.describe(expr=config["calc"]["apart"]["expr"])
     async def apart(self, ctx: commands.Context, *, expr: str):
-        """Factors expressions."""
+        """Decompose partial fractions."""
         raw_expr = parse_raw(expr)
         await ctx.send(pretty_eq(raw_expr, sympy.apart(raw_expr)))
 
@@ -92,7 +93,7 @@ class CalcCog(  # type: ignore[call-arg]
     )
     @app_commands.guilds(*config["calc"]["glds"])
     async def calc(self, ctx: commands.Context, cmd: str):
-        """Does calculus."""
+        """Throw an error."""
         raise commands.CommandNotFound(f'Command "{cmd}" is not found')
 
     @calc.command(
@@ -106,7 +107,7 @@ class CalcCog(  # type: ignore[call-arg]
         var=config["calc"]["diff"]["var"], expr=config["calc"]["diff"]["expr"]
     )
     async def diff(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Takes derivatives."""
+        """Take derivatives."""
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -127,7 +128,7 @@ class CalcCog(  # type: ignore[call-arg]
         var=config["calc"]["adiff"]["var"], expr=config["calc"]["adiff"]["expr"]
     )
     async def adiff(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Integrates."""
+        """Calculate integrals."""
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -152,7 +153,7 @@ class CalcCog(  # type: ignore[call-arg]
     async def limit(
         self, ctx: commands.Context, pos: str, var: str = "x", *, expr: str
     ):
-        """Computes limits."""
+        """Compute limits."""
         raw_var = parse_raw(var)
         raw_pos = parse_raw(pos)
         raw_expr = parse_raw(expr)
@@ -175,7 +176,7 @@ class CalcCog(  # type: ignore[call-arg]
         var=config["calc"]["solve"]["var"], expr=config["calc"]["solve"]["expr"]
     )
     async def solve(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Solves equations."""
+        """Solve equations."""
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -198,7 +199,7 @@ class CalcCog(  # type: ignore[call-arg]
         var=config["calc"]["ineq"]["var"], expr=config["calc"]["ineq"]["expr"]
     )
     async def ineq(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Solves inequalities."""
+        """Solve inequalities."""
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -219,7 +220,7 @@ class CalcCog(  # type: ignore[call-arg]
         var=config["calc"]["roots"]["var"], expr=config["calc"]["roots"]["expr"]
     )
     async def roots(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Finds roots of polynomials."""
+        """Find roots of polynomials."""
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         res_var = var.strip("`").replace("\\", "")
@@ -244,7 +245,7 @@ class CalcCog(  # type: ignore[call-arg]
         var=config["calc"]["dsolv"]["var"], expr=config["calc"]["dsolv"]["expr"]
     )
     async def dsolv(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Solves differential equations."""
+        """Solve differential equations."""
         raw_var = parse_raw(var)
         raw_expr = sympy.parse_expr(
             expr.strip("`").replace("\\", ""),
@@ -262,5 +263,5 @@ class CalcCog(  # type: ignore[call-arg]
 
 
 async def setup(bot):
-    """Sets up the extension."""
+    """Set up the extension."""
     await bot.add_cog(CalcCog(bot))

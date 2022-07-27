@@ -1,26 +1,27 @@
 """Commands related to chess."""
 import datetime
 import io
-import random
+import secrets
 import typing
 
 import cairosvg
 import chess
 import discord
-import toml
 from chess import engine, pgn, svg
 from discord import app_commands, ui
-from discord.ext import commands
+from discord.ext import commands  # type: ignore[attr-defined]
 
-config = toml.load("config.toml")
+from .. import base
+
+config = base.config
 dummy = [discord.SelectOption(label="dummy")]
 
 
 async def get_move(board: chess.Board, level: int) -> chess.Move:
-    """Gets the next move."""
+    """Get the next move."""
     if level == 0:
-        return random.choice(list(board.legal_moves))
-    _, stockfish = await engine.popen_uci("stockfish/stockfish_14_x64")
+        return secrets.choice(list(board.legal_moves))
+    _, stockfish = await engine.popen_uci(base.sf_path)
     result = await stockfish.play(
         board, chess.engine.Limit(depth=16), options={"Skill Level": level - 1}
     )
@@ -31,7 +32,7 @@ async def get_move(board: chess.Board, level: int) -> chess.Move:
 
 
 def get_svg(board: chess.Board, color: chess.Color) -> str:
-    """Gets the SVG of the board."""
+    """Get the SVG of the board."""
     return svg.board(
         board,
         orientation=color,
@@ -59,7 +60,7 @@ class ChessView(ui.View):
         self.update_dest()
 
     def get_pgn(self) -> pgn.Game:
-        """Gets the PGN of the game."""
+        """Get the PGN of the game."""
         game = pgn.Game.from_board(self.board)
         game.headers["Event"] = "Live Chess"
         game.headers["Site"] = "Discord"
@@ -74,7 +75,7 @@ class ChessView(ui.View):
         return game
 
     def update_src(self, default: str):
-        """Updates the options after selecting a source."""
+        """Update the options after selecting a source."""
         squares = {move.from_square for move in self.board.legal_moves}
         self.src.options = []
         for square in squares:
@@ -92,7 +93,7 @@ class ChessView(ui.View):
         self.src.disabled = False
 
     def update_dest(self):
-        """Updates the options after selecting a target."""
+        """Update the options after selecting a target."""
         if self.board.is_game_over():
             self.src.options = dummy
             self.src.disabled = True
@@ -102,7 +103,7 @@ class ChessView(ui.View):
         self.dest.disabled = True
 
     async def make_move(self):
-        """Makes a move."""
+        """Make a move."""
         if not self.board.is_game_over() and self.board.turn != self.color:
             self.board.push(await get_move(self.board, self.level))
 
@@ -114,7 +115,7 @@ class ChessView(ui.View):
 
     @ui.select(options=dummy, placeholder="Select the source square", row=0)
     async def src(self, interaction: discord.Interaction, select: ui.Select):
-        """Selects the source square."""
+        """Select the source square."""
         if interaction.user != self.user:
             return
         await interaction.response.defer()
@@ -131,7 +132,7 @@ class ChessView(ui.View):
 
     @ui.select(options=dummy, placeholder="Select the target square", row=1)
     async def dest(self, interaction: discord.Interaction, select: ui.Select):
-        """Selects the target square."""
+        """Select the target square."""
         if interaction.user != self.user:
             return
         await interaction.response.defer()
@@ -183,9 +184,9 @@ class GameCog(  # type: ignore[call-arg]
         lvl: commands.Range[int, 0, 21],
         fst: typing.Optional[bool] = None,
     ):
-        """Plays chess."""
+        """Play chess."""
         if fst is None:
-            fst = bool(random.randrange(2))
+            fst = bool(secrets.randbelow(2))
         view = ChessView(chess.Board(), fst, lvl, user=ctx.author)
         await view.make_move()
         fen = view.board.fen()
@@ -212,10 +213,10 @@ class GameCog(  # type: ignore[call-arg]
     @app_commands.guilds(*config["game"]["glds"])
     @app_commands.describe(fen=config["game"]["anlys"]["fen"])
     async def anlys(self, ctx: commands.Context, fen: str):
-        """Gets some analysis for chess."""
+        """Get some analysis for chess."""
         await ctx.defer()
         board = chess.Board(fen)
-        _, stockfish = await engine.popen_uci("stockfish/stockfish_14_x64")
+        _, stockfish = await engine.popen_uci(base.sf_path)
         info = await stockfish.analyse(board, engine.Limit(depth=20))
         await stockfish.quit()
         score: engine.Score = info["score"].white()
@@ -229,9 +230,9 @@ class GameCog(  # type: ignore[call-arg]
             else:
                 result = "#-0"
         else:
-            result = str(score.score())
+            result = str(round(score.score() / 100, 2))
         await ctx.send(
-            f"{result} ~{wdl}%",
+            f"White has an advantage of {result} ({wdl}%).",
             file=discord.File(
                 io.BytesIO(cairosvg.svg2png(get_svg(board, chess.WHITE))),
                 "board.png",
@@ -240,5 +241,5 @@ class GameCog(  # type: ignore[call-arg]
 
 
 async def setup(bot):
-    """Sets up the extension."""
+    """Set up the extension."""
     await bot.add_cog(GameCog(bot))

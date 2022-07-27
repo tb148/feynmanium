@@ -45,13 +45,20 @@ isort = { extras = [
     "requirements_deprecated_finder",
     "pipfile_deprecated_finder"
 ], version = "^5.10.1" }
-pylint = "^2.14.5"
-mypy = "^0.971"
 types-toml = "^0.10.8"
 flake8 = "^4.0.1"
+pylama = { extras = ["all"], version = "^8.3.8" }
+bandit = "^1.7.4"
+autoflake = "^1.4"
+pyupgrade = "^2.37.2"
+pydocstringformatter = "^0.6.2"
+pre-commit = "^2.20.0"
 
 [tool.pylint.format]
 max-line-length = 80
+
+[tool.vulture]
+min_confidence = 70
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,4 +1,4 @@
-name: Flake8
+name: Isort
 
 on: [push, pull_request]
 
@@ -10,16 +10,8 @@ jobs:
         python-version: ["3.10"]
     steps:
       - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "poetry"
-      - name: Install dependencies
-        run: |
-          poetry install
-      - name: Analysing the code with Flake8
-        run: |
-          poetry run flake8 feynmanium
+      - uses: jamescurtin/isort-action@master

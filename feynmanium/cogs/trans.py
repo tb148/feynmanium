@@ -1,10 +1,11 @@
 """Translation commands."""
 import googletrans
-import toml
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands  # type: ignore[attr-defined]
 
-config = toml.load("config.toml")
+from .. import base
+
+config = base.config
 trans = googletrans.Translator()
 
 
@@ -34,7 +35,7 @@ class TransCog(  # type: ignore[call-arg]
     async def trans(
         self, ctx: commands.Context, dest: str, src: str = "auto", *, text: str
     ):
-        """Translates text."""
+        """Translate text."""
         result = trans.translate(text, dest, src)
         res_src = googletrans.LANGUAGES[result.src]
         res_origin = result.origin
@@ -51,7 +52,7 @@ class TransCog(  # type: ignore[call-arg]
     @app_commands.guilds(*config["trans"]["glds"])
     @app_commands.describe(text=config["trans"]["lang"]["text"])
     async def lang(self, ctx: commands.Context, *, text: str):
-        """Detects language of text."""
+        """Detect language of text."""
         result = trans.detect(text)
         res_lang = googletrans.LANGUAGES[result.lang]
         await ctx.send(f"{res_lang}:\n> {text}")
@@ -64,7 +65,7 @@ class TransCog(  # type: ignore[call-arg]
     )
     @app_commands.guilds(*config["trans"]["glds"])
     async def code(self, ctx):
-        """Lists language codes."""
+        """List language codes."""
         result = ", ".join(
             [
                 f"{key} - {value}"
@@ -76,5 +77,5 @@ class TransCog(  # type: ignore[call-arg]
 
 
 async def setup(bot):
-    """Sets up the extension."""
+    """Set up the extension."""
     await bot.add_cog(TransCog(bot))

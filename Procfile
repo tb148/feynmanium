@@ -1,1 +1,1 @@
-bot: python feynmanium $TOKEN -vv
+bot: python -m feynmanium $TOKEN -q
