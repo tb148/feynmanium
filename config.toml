@@ -199,7 +199,7 @@ hide = false
 desc = "Lists language codes"
 
 [game]
-name = "Games"
+name = "Chess"
 desc = "Some games to play."
 glds = [255467070777458688]
 
@@ -241,3 +241,9 @@ enbl = true
 hide = false
 desc = "Gets some analysis for chess"
 fen = "The FEN of the game"
+
+[game.game]
+name = "game"
+enbl = true
+hide = false
+desc = "Reads a PGN"

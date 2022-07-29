@@ -54,9 +54,9 @@ class ChessView(ui.View):
         timeout: typing.Optional[float] = 300,
     ):
         """Initialize the view."""
+        super().__init__(timeout=timeout)
         self.user, self.message = user, None
         self.board, self.color, self.level = board, color, level
-        super().__init__(timeout=timeout)
 
     def get_pgn(self) -> pgn.Game:
         """Get the PGN of the game."""
@@ -156,6 +156,137 @@ class ChessView(ui.View):
         )
 
 
+class GameView(ui.View):
+    """View for game."""
+
+    def __init__(
+        self,
+        node: pgn.GameNode,
+        *,
+        user: discord.User,
+        timeout: typing.Optional[float] = 300,
+    ):
+        """Initialize the view."""
+        super().__init__(timeout=timeout)
+        self.user, self.message = user, None
+        self.node = node
+        self.update()
+
+    def update(self):
+        """Update item availability."""
+        self.root.disabled = self.node.parent is None
+        self.prev.disabled = self.node.parent is None
+        self.main.disabled = self.node.is_main_variation()
+        self.next.disabled = self.node.is_end()
+        self.leaf.disabled = self.node.is_end()
+        self.move.options = []
+        for child in self.node.variations:
+            if child.move is not None:
+                self.move.options.append(
+                    discord.SelectOption(
+                        label=self.node.board().san(child.move),
+                        description=self.node.board().san(child.move),
+                    )
+                )
+        if self.move.options:
+            self.move.disabled = False
+        else:
+            self.move.options = dummy
+            self.move.disabled = True
+
+    async def sync(self, interaction: discord.Interaction):
+        """Sync the view."""
+        self.update()
+        await interaction.edit_original_message(
+            attachments=[
+                discord.File(
+                    io.BytesIO(
+                        cairosvg.svg2png(
+                            get_svg(self.node.board(), self.node.turn())
+                        )
+                    ),
+                    "board.png",
+                )
+            ],
+            view=self,
+        )
+
+    async def on_timeout(self):
+        """Disable all items on timeout."""
+        for item in self.children:
+            item.disabled = True
+        await self.message.edit(view=self)
+
+    @ui.button(label="<<", style=discord.ButtonStyle.primary, row=0)
+    async def root(self, interaction: discord.Interaction, button: ui.Button):
+        """Go to the first move."""
+        del button
+        if interaction.user != self.user:
+            return
+        await interaction.response.defer()
+        self.node = self.node.game()
+        await self.sync(interaction)
+
+    @ui.button(label="<", row=0)
+    async def prev(self, interaction: discord.Interaction, button: ui.Button):
+        """Go to the last move."""
+        del button
+        if interaction.user != self.user:
+            return
+        await interaction.response.defer()
+        result = self.node.parent
+        if result is not None:
+            self.node = result
+        await self.sync(interaction)
+
+    @ui.button(label="<>", row=0)
+    async def main(self, interaction: discord.Interaction, button: ui.Button):
+        """Go to the main variation."""
+        del button
+        if interaction.user != self.user:
+            return
+        await interaction.response.defer()
+        parent = self.node.parent
+        if parent is not None:
+            result = parent.next()
+            if result is not None:
+                self.node = result
+        await self.sync(interaction)
+
+    @ui.button(label=">", row=0)
+    async def next(self, interaction: discord.Interaction, button: ui.Button):
+        """Go to the next move."""
+        del button
+        if interaction.user != self.user:
+            return
+        await interaction.response.defer()
+        result = self.node.next()
+        if result is not None:
+            self.node = result
+        await self.sync(interaction)
+
+    @ui.button(label=">>", style=discord.ButtonStyle.primary, row=0)
+    async def leaf(self, interaction: discord.Interaction, button: ui.Button):
+        """Go to the last move."""
+        del button
+        if interaction.user != self.user:
+            return
+        await interaction.response.defer()
+        self.node = self.node.end()
+        await self.sync(interaction)
+
+    @ui.select(options=dummy, placeholder="Select the move", row=1)
+    async def move(self, interaction: discord.Interaction, select: ui.Select):
+        """Go to selected variation."""
+        if interaction.user != self.user:
+            return
+        await interaction.response.defer()
+        move = self.node.board().parse_san(select.values[0])
+        if self.node.has_variation(move):
+            self.node = self.node.variation(move)
+        await self.sync(interaction)
+
+
 class GameCog(  # type: ignore[call-arg]
     commands.Cog,
     name=config["game"]["name"],
@@ -234,9 +365,34 @@ class GameCog(  # type: ignore[call-arg]
         await ctx.send(
             f"White has an advantage of {result} ({wdl}%).",
             file=discord.File(
-                io.BytesIO(cairosvg.svg2png(get_svg(board, chess.WHITE))),
+                io.BytesIO(cairosvg.svg2png(get_svg(board, board.turn))),
                 "board.png",
             ),
+        )
+
+    @commands.hybrid_command(
+        name=config["game"]["game"]["name"],
+        enabled=config["game"]["game"]["enbl"],
+        hidden=config["game"]["game"]["hide"],
+        help=config["game"]["game"]["desc"],
+    )
+    @app_commands.guilds(*config["game"]["glds"])
+    async def game(self, ctx: commands.Context, file: discord.Attachment):
+        """Read a PGN."""
+        node = pgn.read_game(
+            io.StringIO(str(await file.read(), encoding="utf-8"))
+        )
+        view = GameView(node, user=ctx.author)
+        view.message = await ctx.send(
+            file=discord.File(
+                io.BytesIO(
+                    cairosvg.svg2png(
+                        get_svg(view.node.board(), view.node.turn())
+                    )
+                ),
+                "board.png",
+            ),
+            view=view,
         )
 
 
