@@ -57,8 +57,7 @@ class Bot(commands.AutoShardedBot):
         """Send an error message."""
         await super().on_command_error(ctx, err)
         err_msg = secrets.choice(config["bot"]["err-msgs"])
-        err_type = err.__class__.__name__
-        await ctx.send(f"{err_msg}\n```{err_type}: {err}```")
+        await ctx.send(f"{err_msg}```{err}```", ephemeral=True)
 
     async def setup_hook(self):
         """Set up the bot."""
@@ -106,11 +105,12 @@ async def roll(
     cnt: commands.Range[int, 1, 400] = 1,
 ):
     """Roll dice."""
-    result = [secrets.randbelow(_) + 1 for _ in range(cnt)]
+    result = [secrets.randbelow(siz) + 1 for _ in range(cnt)]
     total = sum(result)
     res_str = ", ".join([str(_) for _ in result])
     await ctx.send(
-        f"You rolled {cnt}d{siz} and get a {total}!\n```\n{res_str}\n```"
+        f"You rolled {cnt}d{siz} and get a {total}!```{res_str}```",
+        ephemeral=True,
     )
 
 
@@ -125,7 +125,7 @@ async def roll(
 async def eight_ball(ctx: commands.Context, *, qry: str = "Is it?"):
     """Asks the magic 8-ball."""
     result = secrets.choice(config["bot"]["8ball"]["msgs"])
-    await ctx.send(f"> {qry}\n{result}")
+    await ctx.send(f"> {qry}\n{result}", ephemeral=True)
 
 
 @bot.hybrid_command(
@@ -138,7 +138,7 @@ async def eight_ball(ctx: commands.Context, *, qry: str = "Is it?"):
 async def ping(ctx: commands.Context):
     """Test the latency."""
     result = math.ceil(bot.latency * 1000)
-    await ctx.send(f"Pong! The ping took {result} ms.")
+    await ctx.send(f"Pong! The ping took {result} ms.", ephemeral=True)
 
 
 def setup():

@@ -41,7 +41,10 @@ class TransCog(  # type: ignore[call-arg]
         res_origin = result.origin
         res_dest = googletrans.LANGUAGES[result.dest]
         res_text = result.text
-        await ctx.send(f"{res_src}:\n> {res_origin}\n{res_dest}:\n> {res_text}")
+        await ctx.send(
+            f"{res_src}:\n> {res_origin}\n{res_dest}:\n> {res_text}",
+            ephemeral=True,
+        )
 
     @commands.hybrid_command(
         name=config["trans"]["lang"]["name"],
@@ -55,7 +58,7 @@ class TransCog(  # type: ignore[call-arg]
         """Detect language of text."""
         result = trans.detect(text)
         res_lang = googletrans.LANGUAGES[result.lang]
-        await ctx.send(f"{res_lang}:\n> {text}")
+        await ctx.send(f"{res_lang}:\n> {text}", ephemeral=True)
 
     @commands.hybrid_command(
         name=config["trans"]["code"]["name"],
@@ -73,7 +76,7 @@ class TransCog(  # type: ignore[call-arg]
             ]
         )
 
-        await ctx.send(f"Available language codes:\n{result}")
+        await ctx.send(f"Available language codes:\n{result}", ephemeral=True)
 
 
 async def setup(bot):

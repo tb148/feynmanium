@@ -333,6 +333,7 @@ class GameCog(  # type: ignore[call-arg]
                 ),
             ],
             view=view,
+            ephemeral=True,
         )
 
     @commands.hybrid_command(
@@ -368,6 +369,7 @@ class GameCog(  # type: ignore[call-arg]
                 io.BytesIO(cairosvg.svg2png(get_svg(board, board.turn))),
                 "board.png",
             ),
+            ephemeral=True,
         )
 
     @commands.hybrid_command(
@@ -393,6 +395,7 @@ class GameCog(  # type: ignore[call-arg]
                 "board.png",
             ),
             view=view,
+            ephemeral=True,
         )
 
 

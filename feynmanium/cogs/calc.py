@@ -16,7 +16,7 @@ def parse_raw(expr: str):
 def pretty_eq(lhs, rhs):
     """Pretty print an equality."""
     result = sympy.pretty(sympy.Eq(lhs, rhs, evaluate=False), use_unicode=False)
-    return f"```\n{result}\n```"
+    return f"```{result}```"
 
 
 class CalcCog(  # type: ignore[call-arg]
@@ -43,7 +43,8 @@ class CalcCog(  # type: ignore[call-arg]
         """Simplify expressions."""
         raw_expr = parse_raw(expr)
         await ctx.send(
-            pretty_eq(raw_expr, sympy.simplify(raw_expr, ratio=sympy.oo))
+            pretty_eq(raw_expr, sympy.simplify(raw_expr, ratio=sympy.oo)),
+            ephemeral=True,
         )
 
     @simpl.command(
@@ -57,7 +58,9 @@ class CalcCog(  # type: ignore[call-arg]
     async def expn(self, ctx: commands.Context, *, expr: str):
         """Expand expressions."""
         raw_expr = parse_raw(expr)
-        await ctx.send(pretty_eq(raw_expr, sympy.expand(raw_expr)))
+        await ctx.send(
+            pretty_eq(raw_expr, sympy.expand(raw_expr)), ephemeral=True
+        )
 
     @simpl.command(
         name=config["calc"]["fact"]["name"],
@@ -70,7 +73,9 @@ class CalcCog(  # type: ignore[call-arg]
     async def fact(self, ctx: commands.Context, *, expr: str):
         """Factor expressions."""
         raw_expr = parse_raw(expr)
-        await ctx.send(pretty_eq(raw_expr, sympy.factor(raw_expr)))
+        await ctx.send(
+            pretty_eq(raw_expr, sympy.factor(raw_expr)), ephemeral=True
+        )
 
     @simpl.command(
         name=config["calc"]["apart"]["name"],
@@ -83,7 +88,9 @@ class CalcCog(  # type: ignore[call-arg]
     async def apart(self, ctx: commands.Context, *, expr: str):
         """Decompose partial fractions."""
         raw_expr = parse_raw(expr)
-        await ctx.send(pretty_eq(raw_expr, sympy.apart(raw_expr)))
+        await ctx.send(
+            pretty_eq(raw_expr, sympy.apart(raw_expr)), ephemeral=True
+        )
 
     @commands.hybrid_group(
         name=config["calc"]["calc"]["name"],
@@ -114,7 +121,8 @@ class CalcCog(  # type: ignore[call-arg]
             pretty_eq(
                 sympy.Derivative(raw_expr, raw_var),
                 sympy.diff(raw_expr, raw_var),
-            )
+            ),
+            ephemeral=True,
         )
 
     @calc.command(
@@ -135,7 +143,8 @@ class CalcCog(  # type: ignore[call-arg]
             pretty_eq(
                 sympy.Integral(raw_expr, raw_var),
                 sympy.integrate(raw_expr, raw_var),
-            )
+            ),
+            ephemeral=True,
         )
 
     @calc.command(
@@ -161,7 +170,8 @@ class CalcCog(  # type: ignore[call-arg]
             pretty_eq(
                 sympy.Limit(raw_expr, raw_var, raw_pos),
                 sympy.limit(raw_expr, raw_var, raw_pos),
-            )
+            ),
+            ephemeral=True,
         )
 
     @commands.hybrid_group(
@@ -185,7 +195,8 @@ class CalcCog(  # type: ignore[call-arg]
                     raw_var, sympy.Eq(raw_expr, 0, evaluate=False)
                 ),
                 sympy.solveset(raw_expr, raw_var),
-            )
+            ),
+            ephemeral=True,
         )
 
     @solve.command(
@@ -206,7 +217,8 @@ class CalcCog(  # type: ignore[call-arg]
             pretty_eq(
                 sympy.ConditionSet(raw_var, raw_expr, sympy.S.Reals),
                 sympy.solveset(raw_expr, raw_var, sympy.S.Reals),
-            )
+            ),
+            ephemeral=True,
         )
 
     @solve.command(
@@ -227,12 +239,17 @@ class CalcCog(  # type: ignore[call-arg]
         res_expr = expr.strip("`").replace("\\", "")
         roots = sympy.roots(raw_expr, raw_var, quintics=True, multiple=True)
         if len(roots) == 0:
-            await ctx.send(f"Cannot find roots of `{res_var}` on `{res_expr}`")
+            await ctx.send(
+                f"Solving for `{res_var}` in `{res_expr}` failed.",
+                ephemeral=True,
+            )
             return
-        await ctx.send(f"The roots of `{res_var}` on `{res_expr}` are")
+        await ctx.send(
+            f"Solving for `{res_var}` in `{res_expr}` gives:", ephemeral=True
+        )
         for root in roots:
             result = sympy.pretty(root, use_unicode=False)
-            await ctx.send(f"```\n{result}\n```")
+            await ctx.send(f"```{result}```", ephemeral=True)
 
     @solve.command(
         name=config["calc"]["dsolv"]["name"],
@@ -244,21 +261,23 @@ class CalcCog(  # type: ignore[call-arg]
     @app_commands.describe(
         var=config["calc"]["dsolv"]["var"], expr=config["calc"]["dsolv"]["expr"]
     )
-    async def dsolv(self, ctx: commands.Context, var: str = "x", *, expr: str):
+    async def dsolv(
+        self, ctx: commands.Context, var: str = "f(x)", *, expr: str
+    ):
         """Solve differential equations."""
         raw_var = parse_raw(var)
         raw_expr = sympy.parse_expr(
             expr.strip("`").replace("\\", ""),
             local_dict={"D": sympy.Derivative},
         )
+        res_var = var.strip("`").replace("\\", "")
+        res_expr = expr.strip("`").replace("\\", "")
+        result = sympy.pretty(
+            sympy.dsolve(raw_expr, raw_var), use_unicode=False
+        )
         await ctx.send(
-            "Solving for `{}` in `{}` gives\n```\n{}\n```".format(
-                var.strip("`").replace("\\", ""),
-                expr.strip("`").replace("\\", ""),
-                sympy.pretty(
-                    sympy.dsolve(raw_expr, raw_var), use_unicode=False
-                ),
-            )
+            f"Solving for `{res_var}` in `{res_expr}` gives: ```{result}```",
+            ephemeral=True,
         )
 
 
