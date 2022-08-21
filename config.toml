@@ -13,7 +13,7 @@ rdy = [
     "INITIALIZED: FEYNMAN",
 ]
 
-[feynmanium.main]
+[feynmanium.run]
 desc = """Feynman - A Discord bot that works.
 This bot is created by TonyBrown148."""
 ownr = [728198677050425424]

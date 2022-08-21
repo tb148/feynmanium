@@ -10,10 +10,7 @@ A `Discord`_ bot that works.
 Requirements
 ************
 
-Feynmanium requires:
-
--  `Python`_ v3.10 or later
--  `Poetry`_ v1.1 or later
+Feynmanium requires `Python`_ v3.10 or later.
 
 ************
 Installation
@@ -23,8 +20,7 @@ Run the following commands to install Feynmanium:
 
 ::
 
-   git clone https://github.com/tb148/feynmanium.git
-   poetry install
+   pip install feynmanium
 
 *****
 Usage
@@ -34,7 +30,7 @@ Run the following commmand to run Feynmanium
 
 ::
 
-   python -m feynmanium <token>
+   feynmanium <token>
 
 .. _Discord: https://discord.com/
 .. _Python: https://python.org/

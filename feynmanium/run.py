@@ -16,6 +16,7 @@ import argparse
 import asyncio
 import logging
 import pathlib
+import typing
 
 import discord
 import uvloop
@@ -58,10 +59,10 @@ def main():
         args.token,
     )
     handler = logging.FileHandler(filename=log_file, encoding="utf-8", mode="w")
-    config = toml_file.TOMLFile(conf_file).read()
+    config: typing.Any = toml_file.TOMLFile(conf_file).read()
 
     guilds = [
-        discord.Object(guild) for guild in config["feynmanium"]["main"]["glds"]
+        discord.Object(guild) for guild in config["feynmanium"]["run"]["glds"]
     ]
     bot = base.Bot(
         commands.when_mentioned,
@@ -69,8 +70,8 @@ def main():
         guilds=guilds,
         help_command=commands.DefaultHelpCommand(dm_help=None),
         case_insensitive=True,
-        description=config["feynmanium"]["main"]["desc"],
-        owner_ids=config["feynmanium"]["main"]["ownr"],
+        description=config["feynmanium"]["run"]["desc"],
+        owner_ids=config["feynmanium"]["run"]["ownr"],
         intents=discord.Intents.default(),
     )
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
