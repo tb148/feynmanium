@@ -1,120 +1,138 @@
-"""Mathematical commands."""
+"""This file is part of Feynmanium.
+
+Feynmanium is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of theLicense, or (at your option) any later
+version.
+
+Feynmanium is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with Feynmanium. If not, see <https://www.gnu.org/licenses/>.
+"""
 import sympy
-from discord import app_commands
-from discord.ext import commands  # type: ignore[attr-defined]
+from discord.ext import commands
 
 from .. import base
 
-config = base.config
-
 
 def parse_raw(expr: str):
-    """Turn the expression into the required format."""
+    """Parses an expression.
+
+    Args:
+        expr: Expression to parse.
+
+    Returns:
+        The parsed expression.
+    """
     return sympy.S(expr.strip("`").replace("\\", ""), evaluate=False)
 
 
-def pretty_eq(lhs, rhs):
-    """Pretty print an equality."""
+def pretty_eq(lhs, rhs) -> str:
+    """Prettifies an equality.
+
+    Args:
+        lhs: Left hand side.
+        rhs: Right hand side.
+
+    Returns:
+        The prettified equality.
+    """
     result = sympy.pretty(sympy.Eq(lhs, rhs, evaluate=False), use_unicode=False)
     return f"```{result}```"
 
 
-class CalcCog(  # type: ignore[call-arg]
-    commands.Cog,
-    name=config["calc"]["name"],
-    description=config["calc"]["desc"],
-):
-    """Mathematical commands."""
+class CalcCog(commands.Cog, name="Mathematics"):
+    """Mathematical commands.
 
-    def __init__(self, bot: commands.AutoShardedBot):
-        """Initialize the cog."""
+    Attributes:
+        bot: The bot that contains the cog.
+    """
+
+    def __init__(self, bot: base.Bot):
+        """Initializes the cog.
+
+        Args:
+            bot: The bot that contains the cog.
+        """
         self.bot = bot
 
-    @commands.hybrid_group(
-        name=config["calc"]["simpl"]["name"],
-        enabled=config["calc"]["simpl"]["enbl"],
-        hidden=config["calc"]["simpl"]["hide"],
-        help=config["calc"]["simpl"]["desc"],
-        fallback=config["calc"]["simpl"]["name"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(expr=config["calc"]["simpl"]["expr"])
-    async def simpl(self, ctx: commands.Context, *, expr: str):
-        """Simplify expressions."""
+    @commands.hybrid_group(fallback="simpl")
+    async def simpl(self, ctx: commands.Context[base.Bot], *, expr: str):
+        """Simplifies expressions.
+
+        Args:
+            ctx: Context of the command.
+            expr: Expression to simplify.
+        """
         raw_expr = parse_raw(expr)
         await ctx.send(
             pretty_eq(raw_expr, sympy.simplify(raw_expr, ratio=sympy.oo)),
             ephemeral=True,
         )
 
-    @simpl.command(
-        name=config["calc"]["expn"]["name"],
-        enabled=config["calc"]["expn"]["enbl"],
-        hidden=config["calc"]["expn"]["hide"],
-        help=config["calc"]["expn"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(expr=config["calc"]["expn"]["expr"])
-    async def expn(self, ctx: commands.Context, *, expr: str):
-        """Expand expressions."""
+    @simpl.command()
+    async def expn(self, ctx: commands.Context[base.Bot], *, expr: str):
+        """Expands expressions.
+
+        Args:
+            ctx: Context of the command.
+            expr: Expression to expand.
+        """
         raw_expr = parse_raw(expr)
         await ctx.send(
             pretty_eq(raw_expr, sympy.expand(raw_expr)), ephemeral=True
         )
 
-    @simpl.command(
-        name=config["calc"]["fact"]["name"],
-        enabled=config["calc"]["fact"]["enbl"],
-        hidden=config["calc"]["fact"]["hide"],
-        help=config["calc"]["fact"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(expr=config["calc"]["fact"]["expr"])
-    async def fact(self, ctx: commands.Context, *, expr: str):
-        """Factor expressions."""
+    @simpl.command()
+    async def fact(self, ctx: commands.Context[base.Bot], *, expr: str):
+        """Factors expressions.
+
+        Args:
+            ctx: Context of the command.
+            expr: Expression to factor.
+        """
         raw_expr = parse_raw(expr)
         await ctx.send(
             pretty_eq(raw_expr, sympy.factor(raw_expr)), ephemeral=True
         )
 
-    @simpl.command(
-        name=config["calc"]["apart"]["name"],
-        enabled=config["calc"]["apart"]["enbl"],
-        hidden=config["calc"]["apart"]["hide"],
-        help=config["calc"]["apart"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(expr=config["calc"]["apart"]["expr"])
-    async def apart(self, ctx: commands.Context, *, expr: str):
-        """Decompose partial fractions."""
+    @simpl.command()
+    async def apart(self, ctx: commands.Context[base.Bot], *, expr: str):
+        """Decomposes partial fractions.
+
+        Args:
+            ctx: Context of the command.
+            expr: Expression to decompose.
+        """
         raw_expr = parse_raw(expr)
         await ctx.send(
             pretty_eq(raw_expr, sympy.apart(raw_expr)), ephemeral=True
         )
 
-    @commands.hybrid_group(
-        name=config["calc"]["calc"]["name"],
-        enabled=config["calc"]["calc"]["enbl"],
-        hidden=config["calc"]["calc"]["hide"],
-        help=config["calc"]["calc"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    async def calc(self, ctx: commands.Context, cmd: str):
-        """Throw an error."""
+    @commands.hybrid_group()
+    async def calc(self, ctx: commands.Context[base.Bot], cmd: str):
+        """Calculus commands.
+
+        Args:
+            ctx: Context of the command.
+            cmd: Command to call.
+        """
         raise commands.CommandNotFound(f'Command "{cmd}" is not found')
 
-    @calc.command(
-        name=config["calc"]["diff"]["name"],
-        enabled=config["calc"]["diff"]["enbl"],
-        hidden=config["calc"]["diff"]["hide"],
-        help=config["calc"]["diff"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        var=config["calc"]["diff"]["var"], expr=config["calc"]["diff"]["expr"]
-    )
-    async def diff(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Take derivatives."""
+    @calc.command()
+    async def diff(
+        self, ctx: commands.Context[base.Bot], var: str = "x", *, expr: str
+    ):
+        """Calculates derivatives.
+
+        Args:
+            ctx: Context of the command.
+            var: Variable to calculate derivatives.
+            expr: Expression to calculate derivatives.
+        """
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -125,18 +143,17 @@ class CalcCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @calc.command(
-        name=config["calc"]["adiff"]["name"],
-        enabled=config["calc"]["adiff"]["enbl"],
-        hidden=config["calc"]["adiff"]["hide"],
-        help=config["calc"]["adiff"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        var=config["calc"]["adiff"]["var"], expr=config["calc"]["adiff"]["expr"]
-    )
-    async def adiff(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Calculate integrals."""
+    @calc.command()
+    async def adiff(
+        self, ctx: commands.Context[base.Bot], var: str = "x", *, expr: str
+    ):
+        """Calculates integrals.
+
+        Args:
+            ctx: Context of the command.
+            var: Variable to calculate integrals.
+            expr: Expression to calculate integrals.
+        """
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -147,22 +164,23 @@ class CalcCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @calc.command(
-        name=config["calc"]["limit"]["name"],
-        enabled=config["calc"]["limit"]["enbl"],
-        hidden=config["calc"]["limit"]["hide"],
-        help=config["calc"]["limit"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        pos=config["calc"]["limit"]["pos"],
-        var=config["calc"]["limit"]["var"],
-        expr=config["calc"]["limit"]["expr"],
-    )
+    @calc.command()
     async def limit(
-        self, ctx: commands.Context, pos: str, var: str = "x", *, expr: str
+        self,
+        ctx: commands.Context[base.Bot],
+        pos: str,
+        var: str = "x",
+        *,
+        expr: str,
     ):
-        """Compute limits."""
+        """Calculates limits.
+
+        Args:
+            ctx: Context of the command.
+            pos: Position to calculate limits.
+            var: Variable to calculate limits.
+            expr: Expression to calculate limits.
+        """
         raw_var = parse_raw(var)
         raw_pos = parse_raw(pos)
         raw_expr = parse_raw(expr)
@@ -174,19 +192,17 @@ class CalcCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @commands.hybrid_group(
-        name=config["calc"]["solve"]["name"],
-        enabled=config["calc"]["solve"]["enbl"],
-        hidden=config["calc"]["solve"]["hide"],
-        help=config["calc"]["solve"]["desc"],
-        fallback=config["calc"]["solve"]["name"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        var=config["calc"]["solve"]["var"], expr=config["calc"]["solve"]["expr"]
-    )
-    async def solve(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Solve equations."""
+    @commands.hybrid_group(fallback="solve")
+    async def solve(
+        self, ctx: commands.Context[base.Bot], var: str = "x", *, expr: str
+    ):
+        """Solves equations.
+
+        Args:
+            ctx: Context of the command.
+            var: Variable to solve.
+            expr: Expression to solve.
+        """
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -199,18 +215,17 @@ class CalcCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @solve.command(
-        name=config["calc"]["ineq"]["name"],
-        enabled=config["calc"]["ineq"]["enbl"],
-        hidden=config["calc"]["ineq"]["hide"],
-        help=config["calc"]["ineq"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        var=config["calc"]["ineq"]["var"], expr=config["calc"]["ineq"]["expr"]
-    )
-    async def ineq(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Solve inequalities."""
+    @solve.command()
+    async def ineq(
+        self, ctx: commands.Context[base.Bot], var: str = "x", *, expr: str
+    ):
+        """Solves inequalities.
+
+        Args:
+            ctx: Context of the command.
+            var: Variable to solve.
+            expr: Expression to solve.
+        """
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         await ctx.send(
@@ -221,23 +236,27 @@ class CalcCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @solve.command(
-        name=config["calc"]["roots"]["name"],
-        enabled=config["calc"]["roots"]["enbl"],
-        hidden=config["calc"]["roots"]["hide"],
-        help=config["calc"]["roots"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        var=config["calc"]["roots"]["var"], expr=config["calc"]["roots"]["expr"]
-    )
-    async def roots(self, ctx: commands.Context, var: str = "x", *, expr: str):
-        """Find roots of polynomials."""
+    @solve.command()
+    async def roots(
+        self, ctx: commands.Context[base.Bot], var: str = "x", *, expr: str
+    ):
+        """Finds roots of polynomials.
+
+        Args:
+            ctx: Context of the command.
+            var: Variable to solve.
+            expr: Expression to solve.
+        """
         raw_var = parse_raw(var)
         raw_expr = parse_raw(expr)
         res_var = var.strip("`").replace("\\", "")
         res_expr = expr.strip("`").replace("\\", "")
-        roots = sympy.roots(raw_expr, raw_var, quintics=True, multiple=True)
+        roots = sympy.roots(
+            raw_expr,
+            raw_var,
+            multiple=True,
+            quintics=self.bot.cfg["feynmanium"]["cogs"]["calc"]["five"],
+        )
         if len(roots) == 0:
             await ctx.send(
                 f"Solving for `{res_var}` in `{res_expr}` failed.",
@@ -251,20 +270,17 @@ class CalcCog(  # type: ignore[call-arg]
             result = sympy.pretty(root, use_unicode=False)
             await ctx.send(f"```{result}```", ephemeral=True)
 
-    @solve.command(
-        name=config["calc"]["dsolv"]["name"],
-        enabled=config["calc"]["dsolv"]["enbl"],
-        hidden=config["calc"]["dsolv"]["hide"],
-        help=config["calc"]["dsolv"]["desc"],
-    )
-    @app_commands.guilds(*config["calc"]["glds"])
-    @app_commands.describe(
-        var=config["calc"]["dsolv"]["var"], expr=config["calc"]["dsolv"]["expr"]
-    )
+    @solve.command()
     async def dsolv(
-        self, ctx: commands.Context, var: str = "f(x)", *, expr: str
+        self, ctx: commands.Context[base.Bot], var: str = "f(x)", *, expr: str
     ):
-        """Solve differential equations."""
+        """Solves differential equations.
+
+        Args:
+            ctx: Context of the command.
+            var: Function to solve.
+            expr: Expression to solve.
+        """
         raw_var = parse_raw(var)
         raw_expr = sympy.parse_expr(
             expr.strip("`").replace("\\", ""),
@@ -281,6 +297,19 @@ class CalcCog(  # type: ignore[call-arg]
         )
 
 
-async def setup(bot):
-    """Set up the extension."""
-    await bot.add_cog(CalcCog(bot))
+async def setup(bot: base.Bot):
+    """Set up the extension.
+
+    Args:
+        bot: Bot that loads the extension.
+    """
+    await bot.add_cog(CalcCog(bot), guilds=list(bot.glds))
+
+
+async def teardown(bot: base.Bot):
+    """Tear down the extension.
+
+    Args:
+        bot: Bot that unloads the extension.
+    """
+    await bot.remove_cog("Mathematics", guilds=list(bot.glds))

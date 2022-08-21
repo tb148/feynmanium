@@ -1,4 +1,17 @@
-"""Commands related to chess."""
+"""This file is part of Feynmanium.
+
+Feynmanium is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of theLicense, or (at your option) any later
+version.
+
+Feynmanium is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with Feynmanium. If not, see <https://www.gnu.org/licenses/>.
+"""
 import datetime
 import io
 import secrets
@@ -8,31 +21,43 @@ import cairosvg
 import chess
 import discord
 from chess import engine, pgn, svg
-from discord import app_commands, ui
-from discord.ext import commands  # type: ignore[attr-defined]
+from discord import ui
+from discord.ext import commands
 
 from .. import base
 
-config = base.config
-dummy = [discord.SelectOption(label="dummy")]
 
+async def get_move(path: str, board: chess.Board, level: int) -> chess.Move:
+    """Plays a position using stockfish.
 
-async def get_move(board: chess.Board, level: int) -> chess.Move:
-    """Get the next move."""
-    if level == 0:
-        return secrets.choice(list(board.legal_moves))
-    _, stockfish = await engine.popen_uci(base.sf_path)
-    result = await stockfish.play(
-        board, chess.engine.Limit(depth=16), options={"Skill Level": level - 1}
+    Args:
+        path: Path of the stockfish executable.
+        board: Position to play.
+        level: Skill level of stockfish.
+
+    Returns:
+        The move stockfish plays.
+    """
+    _, api = await engine.popen_uci(path)
+    result = await api.play(
+        board, engine.Limit(depth=16), options={"Skill Level": level - 1}
     )
-    await stockfish.quit()
+    await api.quit()
     if result.move is not None:
         return result.move
     return chess.Move.null()
 
 
 def get_svg(board: chess.Board, color: chess.Color) -> str:
-    """Get the SVG of the board."""
+    """Renders the SVG of the board.
+
+    Args:
+        board: Chessboard to render.
+        color: Point of view.
+
+    Returns:
+        The rendered SVG.
+    """
     return svg.board(
         board,
         orientation=color,
@@ -42,7 +67,17 @@ def get_svg(board: chess.Board, color: chess.Color) -> str:
 
 
 class ChessView(ui.View):
-    """View for chess."""
+    """View for chess.
+
+    Attributes:
+        msg: Message that holds the view.
+        user: Opponent of the bot.
+        path: Path of the stockfish executable.
+        name: Name of the bot to use.
+        board: Chessboard of the game.
+        color: Orientation of the player.
+        level: Skill level of stockfish,
+    """
 
     def __init__(
         self,
@@ -50,16 +85,31 @@ class ChessView(ui.View):
         color: bool,
         level: int,
         *,
-        user: discord.User,
-        timeout: typing.Optional[float] = 300,
+        ctx: commands.Context[base.Bot],
     ):
-        """Initialize the view."""
-        super().__init__(timeout=timeout)
-        self.user, self.message = user, None
+        """Initializes the view.
+
+        Args:
+            board: Chessboard of the game.
+            color: Orientation of the player.
+            level: Skill level of stockfish,
+            ctx: Context of the view.
+        """
+        self.msg: typing.Optional[discord.Message] = None
+        self.user = ctx.author
+        self.path: str = ctx.bot.cfg["feynmanium"]["cogs"]["game"]["path"]
+        self.name: str = ctx.bot.cfg["feynmanium"]["cogs"]["game"]["card"][
+            level
+        ]
         self.board, self.color, self.level = board, color, level
+        super().__init__(timeout=300)
 
     def get_pgn(self) -> pgn.Game:
-        """Get the PGN of the game."""
+        """Gets the PGN of the game.
+
+        Returns:
+            The PGN of the game.
+        """
         game = pgn.Game.from_board(self.board)
         game.headers["Event"] = "Live Chess"
         game.headers["Site"] = "Discord"
@@ -67,14 +117,18 @@ class ChessView(ui.View):
         game.headers["Round"] = "-"
         if self.color == chess.WHITE:
             game.headers["White"] = self.user.name
-            game.headers["Black"] = config["game"]["chess"]["card"][self.level]
+            game.headers["Black"] = self.name
         else:
-            game.headers["White"] = config["game"]["chess"]["card"][self.level]
+            game.headers["White"] = self.name
             game.headers["Black"] = self.user.name
         return game
 
-    def update_src(self, default: str):
-        """Update the options after selecting a source."""
+    def update(self, default: str):
+        """Updates the options after selecting a source.
+
+        Args:
+            default: Selected source square.
+        """
         squares = {move.from_square for move in self.board.legal_moves}
         self.src.options = []
         for square in squares:
@@ -88,37 +142,41 @@ class ChessView(ui.View):
                     )
                 )
         if not self.src.options:
-            self.src.options = dummy
+            self.src.options = []
         self.src.disabled = False
 
-    def update_dest(self):
-        """Update the options after selecting a target."""
+    async def make_move(self):
+        """Makes a move and updates the options."""
+        if not self.board.is_game_over() and self.board.turn != self.color:
+            self.board.push(await get_move(self.path, self.board, self.level))
         if self.board.is_game_over():
-            self.src.options = dummy
+            self.src.options = []
             self.src.disabled = True
         else:
-            self.update_src("")
-        self.dest.options = dummy
+            self.update("")
+        self.dest.options = []
         self.dest.disabled = True
 
-    async def make_move(self):
-        """Make a move."""
-        if not self.board.is_game_over() and self.board.turn != self.color:
-            self.board.push(await get_move(self.board, self.level))
-
     async def on_timeout(self):
-        """Disable all items on timeout."""
+        """Disables all items on timeout."""
         for item in self.children:
-            item.disabled = True
-        await self.message.edit(view=self)
+            if isinstance(item, (ui.Button, ui.Select)):
+                item.disabled = True
+        if self.msg is not None:
+            await self.msg.edit(view=self)
 
-    @ui.select(options=dummy, placeholder="Select the source square", row=0)
+    @ui.select(options=[], placeholder="Select the source square", row=0)
     async def src(self, interaction: discord.Interaction, select: ui.Select):
-        """Select the source square."""
+        """Selects the source square.
+
+        Args:
+            interaction: Interaction of the selection.
+            select: Select menu of the selection.
+        """
         if interaction.user != self.user:
             return
         await interaction.response.defer()
-        self.update_src(select.values[0])
+        self.update(select.values[0])
         self.dest.options = [
             discord.SelectOption(
                 label=self.board.san(move), description=self.board.lan(move)
@@ -127,19 +185,23 @@ class ChessView(ui.View):
             if move.from_square == chess.parse_square(select.values[0])
         ]
         self.dest.disabled = False
-        await interaction.edit_original_message(view=self)
+        await interaction.edit_original_response(view=self)
 
-    @ui.select(options=dummy, placeholder="Select the target square", row=1)
+    @ui.select(options=[], placeholder="Select the target square", row=1)
     async def dest(self, interaction: discord.Interaction, select: ui.Select):
-        """Select the target square."""
+        """Select the target square.
+
+        Args:
+            interaction: Interaction of the selection.
+            select: Select menu of the selection.
+        """
         if interaction.user != self.user:
             return
         await interaction.response.defer()
         self.board.push_san(select.values[0])
         await self.make_move()
-        self.update_dest()
         fen = self.board.fen()
-        await interaction.edit_original_message(
+        await interaction.edit_original_response(
             content=f"`{fen}`",
             attachments=[
                 discord.File(
@@ -157,23 +219,29 @@ class ChessView(ui.View):
 
 
 class GameView(ui.View):
-    """View for game."""
+    """View for game.
 
-    def __init__(
-        self,
-        node: pgn.GameNode,
-        *,
-        user: discord.User,
-        timeout: typing.Optional[float] = 300,
-    ):
-        """Initialize the view."""
-        super().__init__(timeout=timeout)
-        self.user, self.message = user, None
+    Attributes:
+        msg: Message that holds the view.
+        user: Opponent of the bot.
+        node: PGN node of the state.
+    """
+
+    def __init__(self, node: pgn.GameNode, *, ctx: commands.Context[base.Bot]):
+        """Initializes the view.
+
+        Args:
+            node: PGN node of the state.
+            ctx: Context of the view.
+        """
+        super().__init__(timeout=300)
+        self.msg: typing.Optional[discord.Message] = None
+        self.user = ctx.author
         self.node = node
         self.update()
 
     def update(self):
-        """Update item availability."""
+        """Updates item availability."""
         self.root.disabled = self.node.parent is None
         self.prev.disabled = self.node.parent is None
         self.main.disabled = self.node.is_main_variation()
@@ -191,13 +259,17 @@ class GameView(ui.View):
         if self.move.options:
             self.move.disabled = False
         else:
-            self.move.options = dummy
+            self.move.options = []
             self.move.disabled = True
 
     async def sync(self, interaction: discord.Interaction):
-        """Sync the view."""
+        """Updates the view.
+
+        Args:
+            interaction: Interaction of the update.
+        """
         self.update()
-        await interaction.edit_original_message(
+        await interaction.edit_original_response(
             attachments=[
                 discord.File(
                     io.BytesIO(
@@ -212,14 +284,21 @@ class GameView(ui.View):
         )
 
     async def on_timeout(self):
-        """Disable all items on timeout."""
+        """Disables all items on timeout."""
         for item in self.children:
-            item.disabled = True
-        await self.message.edit(view=self)
+            if isinstance(item, (ui.Button, ui.Select)):
+                item.disabled = True
+        if self.msg is not None:
+            await self.msg.edit(view=self)
 
     @ui.button(label="<<", style=discord.ButtonStyle.primary, row=0)
     async def root(self, interaction: discord.Interaction, button: ui.Button):
-        """Go to the first move."""
+        """Go to the first move.
+
+        Args:
+            interaction: Interaction of the operation.
+            button: Button of the operation.
+        """
         del button
         if interaction.user != self.user:
             return
@@ -229,7 +308,12 @@ class GameView(ui.View):
 
     @ui.button(label="<", row=0)
     async def prev(self, interaction: discord.Interaction, button: ui.Button):
-        """Go to the last move."""
+        """Go to the previous move.
+
+        Args:
+            interaction: Interaction of the operation.
+            button: Button of the operation.
+        """
         del button
         if interaction.user != self.user:
             return
@@ -241,7 +325,12 @@ class GameView(ui.View):
 
     @ui.button(label="<>", row=0)
     async def main(self, interaction: discord.Interaction, button: ui.Button):
-        """Go to the main variation."""
+        """Go to the main variation.
+
+        Args:
+            interaction: Interaction of the operation.
+            button: Button of the operation.
+        """
         del button
         if interaction.user != self.user:
             return
@@ -255,7 +344,12 @@ class GameView(ui.View):
 
     @ui.button(label=">", row=0)
     async def next(self, interaction: discord.Interaction, button: ui.Button):
-        """Go to the next move."""
+        """Go to the next move.
+
+        Args:
+            interaction: Interaction of the operation.
+            button: Button of the operation.
+        """
         del button
         if interaction.user != self.user:
             return
@@ -267,7 +361,12 @@ class GameView(ui.View):
 
     @ui.button(label=">>", style=discord.ButtonStyle.primary, row=0)
     async def leaf(self, interaction: discord.Interaction, button: ui.Button):
-        """Go to the last move."""
+        """Go to the last move.
+
+        Args:
+            interaction: Interaction of the operation.
+            button: Button of the operation.
+        """
         del button
         if interaction.user != self.user:
             return
@@ -275,9 +374,14 @@ class GameView(ui.View):
         self.node = self.node.end()
         await self.sync(interaction)
 
-    @ui.select(options=dummy, placeholder="Select the move", row=1)
+    @ui.select(options=[], placeholder="Select the move", row=1)
     async def move(self, interaction: discord.Interaction, select: ui.Select):
-        """Go to selected variation."""
+        """Go to selected variation.
+
+        Args:
+            interaction: Interaction of the selection.
+            select: Select menu of the selection.
+        """
         if interaction.user != self.user:
             return
         await interaction.response.defer()
@@ -287,41 +391,37 @@ class GameView(ui.View):
         await self.sync(interaction)
 
 
-class GameCog(  # type: ignore[call-arg]
-    commands.Cog,
-    name=config["game"]["name"],
-    description=config["game"]["desc"],
-):
-    """Some games to play."""
+class GameCog(commands.Cog, name="Chessboard"):
+    """Chess related commands.
+
+    Attributes:
+        bot: Bot that contains the cog.
+    """
 
     def __init__(self, bot):
         """Initialize the cog."""
         self.bot = bot
 
-    @commands.hybrid_command(
-        name=config["game"]["chess"]["name"],
-        enabled=config["game"]["chess"]["enbl"],
-        hidden=config["game"]["chess"]["hide"],
-        help=config["game"]["chess"]["desc"],
-    )
-    @app_commands.guilds(*config["game"]["glds"])
-    @app_commands.describe(
-        lvl=config["game"]["chess"]["lvl"], fst=config["game"]["chess"]["fst"]
-    )
+    @commands.hybrid_command()
     async def chess(
         self,
-        ctx: commands.Context,
+        ctx: commands.Context[base.Bot],
         lvl: commands.Range[int, 0, 21],
         fst: typing.Optional[bool] = None,
     ):
-        """Play chess."""
+        """Plays chess.
+
+        Args:
+            ctx: Context of the command.
+            lvl: Strength of the opponent.
+            fst: Whether to play first in game.
+        """
         if fst is None:
             fst = bool(secrets.randbelow(2))
-        view = ChessView(chess.Board(), fst, lvl, user=ctx.author)
+        view = ChessView(chess.Board(), fst, lvl, ctx=ctx)
         await view.make_move()
-        view.update_dest()
         fen = view.board.fen()
-        view.message = await ctx.send(
+        view.msg = await ctx.send(
             f"`{fen}`",
             files=[
                 discord.File(
@@ -336,22 +436,26 @@ class GameCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @commands.hybrid_command(
-        name=config["game"]["anlys"]["name"],
-        enabled=config["game"]["anlys"]["enbl"],
-        hidden=config["game"]["anlys"]["hide"],
-        help=config["game"]["anlys"]["desc"],
-    )
-    @app_commands.guilds(*config["game"]["glds"])
-    @app_commands.describe(fen=config["game"]["anlys"]["fen"])
-    async def anlys(self, ctx: commands.Context, fen: str):
-        """Get some analysis for chess."""
+    @commands.hybrid_command()
+    async def anlys(self, ctx: commands.Context[base.Bot], fen: str):
+        """Asks for some analysis for chess.
+
+        Args:
+            ctx: Context of the command.
+            fen: FEN of the game.
+        """
         await ctx.defer()
         board = chess.Board(fen)
-        _, stockfish = await engine.popen_uci(base.sf_path)
+        _, stockfish = await engine.popen_uci(
+            self.bot.cfg["feynmanium"]["cogs"]["game"]["path"]
+        )
         info = await stockfish.analyse(board, engine.Limit(depth=20))
         await stockfish.quit()
-        score: engine.Score = info["score"].white()
+        score: engine.Score
+        try:
+            score = info["score"].white()
+        except RuntimeError:
+            score = engine.Cp(0)
         wdl = round(score.wdl(model="lichess").expectation() * 100, 2)
         if score == engine.Mate(0):
             result = "#"
@@ -362,7 +466,7 @@ class GameCog(  # type: ignore[call-arg]
             else:
                 result = "#-0"
         else:
-            result = str(round(score.score() / 100, 2))
+            result = str(round(score.score(mate_score=100) / 100, 2))
         await ctx.send(
             f"White has an advantage of {result} ({wdl}%).",
             file=discord.File(
@@ -372,20 +476,24 @@ class GameCog(  # type: ignore[call-arg]
             ephemeral=True,
         )
 
-    @commands.hybrid_command(
-        name=config["game"]["game"]["name"],
-        enabled=config["game"]["game"]["enbl"],
-        hidden=config["game"]["game"]["hide"],
-        help=config["game"]["game"]["desc"],
-    )
-    @app_commands.guilds(*config["game"]["glds"])
-    async def game(self, ctx: commands.Context, file: discord.Attachment):
-        """Read a PGN."""
+    @commands.hybrid_command()
+    async def game(
+        self, ctx: commands.Context[base.Bot], file: discord.Attachment
+    ):
+        """Read a PGN.
+
+        Args:
+            ctx: Context of the command.
+            file: PGN of the game.
+        """
         node = pgn.read_game(
             io.StringIO(str(await file.read(), encoding="utf-8"))
         )
-        view = GameView(node, user=ctx.author)
-        view.message = await ctx.send(
+        if node is None:
+            await ctx.send("Invalid PGN.", ephemeral=True)
+            return
+        view = GameView(node, ctx=ctx)
+        view.msg = await ctx.send(
             file=discord.File(
                 io.BytesIO(
                     cairosvg.svg2png(
@@ -399,6 +507,19 @@ class GameCog(  # type: ignore[call-arg]
         )
 
 
-async def setup(bot):
-    """Set up the extension."""
-    await bot.add_cog(GameCog(bot))
+async def setup(bot: base.Bot):
+    """Set up the extension.
+
+    Args:
+        bot: Bot that loads the extension.
+    """
+    await bot.add_cog(GameCog(bot), guilds=list(bot.glds))
+
+
+async def teardown(bot: base.Bot):
+    """Tear down the extension.
+
+    Args:
+        bot: Bot that unloads the extension.
+    """
+    await bot.remove_cog("Chessboard", guilds=list(bot.glds))

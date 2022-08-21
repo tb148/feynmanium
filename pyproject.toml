@@ -1,20 +1,11 @@
 [tool.black]
 line-length = 80
 skip-magic-trailing-comma = true
+skip-string-normalization = true
 target-version = ['py310']
 
 [tool.isort]
 profile = "black"
-
-[tool.mypy]
-show_error_context = true
-show_column_numbers = true
-show_error_codes = true
-pretty = true
-
-[[tool.mypy.overrides]]
-module = ["cairosvg", "discord.ext", "googletrans"]
-ignore_missing_imports = true
 
 [tool.poetry]
 name = "feynmanium"
@@ -32,13 +23,13 @@ toml = "^0.10.2"
 sympy = "^1.10.1"
 googletrans-py = "^4.0.0"
 mpmath = "^1.2.1"
-"discord.py" = { git = "https://github.com/Rapptz/discord.py.git" }
 chess = "^1.9.2"
 CairoSVG = "^2.5.2"
 uvloop = "^0.16.0"
+"discord.py" = "^2.0.0"
+tomlkit = "^0.11.4"
 
 [tool.poetry.dev-dependencies]
-jedi = "^0.18.1"
 poetry = "^1.1.13"
 black = ">=22.3.0"
 isort = { extras = [
@@ -46,19 +37,25 @@ isort = { extras = [
     "pipfile_deprecated_finder"
 ], version = "^5.10.1" }
 types-toml = "^0.10.8"
-flake8 = "^4.0.1"
-pylama = { extras = ["all"], version = "^8.3.8" }
-bandit = "^1.7.4"
-autoflake = "^1.4"
-pyupgrade = "^2.37.2"
-pydocstringformatter = "^0.6.2"
+pylama = { extras = ["all"], version = "^8.4.1" }
 pre-commit = "^2.20.0"
+
+[tool.poetry.scripts]
+feynmanium = "feynmanium.run:main"
+
+[tool.pylama]
+format = "pydocstyle"
+linters = "eradicate,mccabe,pycodestyle,pydocstyle,pyflakes,pylint,isort"
+max_line_length = 80
+
+[tool.pylama.linter.pydocstyle]
+convention = "google"
 
 [tool.pylint.format]
 max-line-length = 80
 
-[tool.vulture]
-min_confidence = 70
+[tool.pyright]
+typeCheckingMode = "basic"
 
 [build-system]
 requires = ["poetry-core"]

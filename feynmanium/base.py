@@ -1,147 +1,78 @@
-"""The main file of the bot."""
-import argparse
-import asyncio
-import logging
-import math
-import pathlib
+"""This file is part of Feynmanium.
+
+Feynmanium is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of theLicense, or (at your option) any later
+version.
+
+Feynmanium is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with Feynmanium. If not, see <https://www.gnu.org/licenses/>.
+"""
 import secrets
+import typing
 
 import discord
-import toml
-import uvloop
-from discord import app_commands
-from discord.ext import commands, tasks  # type: ignore[attr-defined]
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "-c",
-    "--conf-file",
-    default="config.toml",
-    type=pathlib.Path,
-    help="the file to read configuration",
-)
-parser.add_argument(
-    "-l",
-    "--log-file",
-    default="fy.log",
-    type=pathlib.Path,
-    help="the file to record logging events",
-)
-parser.add_argument(
-    "-q", "--quiet", action="count", default=0, help="decrease output verbosity"
-)
-parser.add_argument(
-    "-s",
-    "--stockfish",
-    default="stockfish/stockfish_14_x64",
-    type=pathlib.Path,
-    help="the path to find stockfish",
-)
-parser.add_argument("token", help="the token of the bot")
-args = parser.parse_args()
-(conf_file, log_file, quiet, sf_path, token) = (
-    args.conf_file,
-    args.log_file,
-    args.quiet,
-    args.stockfish,
-    args.token,
-)
-handler = logging.FileHandler(filename=log_file, encoding="utf-8", mode="w")
-config = toml.load(conf_file)
+from discord.ext import commands
 
 
 class Bot(commands.AutoShardedBot):
-    """The class of the bot."""
+    """The bot client.
 
-    async def on_command_error(self, ctx: commands.Context, err, /):
-        """Send an error message."""
-        await super().on_command_error(ctx, err)
-        err_msg = secrets.choice(config["bot"]["err-msgs"])
-        await ctx.send(f"{err_msg}```{err}```", ephemeral=True)
+    Attributes:
+        cfg: Configuration of the bot.
+        glds: Guilds the bot belongs to.
+    """
+
+    def __init__(
+        self, *args, config, guilds: typing.List[discord.Object], **kwargs
+    ):
+        """Initialize the bot with a configuration.
+
+        Args:
+            args: Positional arguments.
+            config: Configuration of the bot.
+            guilds: Guilds the bot belongs to.
+            kwargs: Keyword arguments.
+        """
+        self.cfg = config
+        self.glds = guilds
+        super().__init__(*args, **kwargs)
 
     async def setup_hook(self):
         """Set up the bot."""
-        for ext in config["bot"]["bot-exts"]:
-            await self.load_extension(f"feynmanium.cogs.{ext}")
-        for guild in config["bot"]["bot-glds"]:
-            await self.tree.sync(guild=discord.Object(guild))
-        status.start()
-        print(secrets.choice(config["bot"]["rdy-msgs"]))
+        self.add_command(load)
+        self.add_command(sync)
+        for cog in self.cfg["feynmanium"]["base"]["exts"]:
+            await self.load_extension(cog)
+        print(secrets.choice(self.cfg["feynmanium"]["base"]["rdy"]))
 
 
-bot = Bot(
-    commands.when_mentioned,
-    help_command=commands.MinimalHelpCommand(
-        dm_help=None, dm_help_threshold=config["bot"]["help-len"]
-    ),
-    case_insensitive=config["bot"]["case-insv"],
-    description=config["bot"]["bot-desc"],
-    owner_ids=config["bot"]["ownr-ids"],
-    intents=discord.Intents.default(),
-)
+@commands.command()
+async def load(ctx: commands.Context[Bot], ext: str):
+    """Loads extensions.
+
+    Args:
+        ctx: Context of the command.
+        ext: Extension to load.
+    """
+    await ctx.bot.load_extension(ext)
+    await ctx.send(f"Extension {ext} loaded!")
 
 
-@tasks.loop(seconds=config["bot"]["stat-freq"])
-async def status():
-    """Change the status of the bot."""
-    await bot.change_presence(
-        activity=discord.Game(secrets.choice(config["bot"]["stat-msgs"]))
-    )
+@commands.command()
+async def sync(ctx: commands.Context[Bot], gld: typing.Optional[discord.Guild]):
+    """Syncs commands.
 
-
-@bot.hybrid_command(
-    name=config["bot"]["roll"]["name"],
-    enabled=config["bot"]["roll"]["enbl"],
-    hidden=config["bot"]["roll"]["hide"],
-    help=config["bot"]["roll"]["desc"],
-)
-@app_commands.guilds(*config["bot"]["bot-glds"])
-@app_commands.describe(
-    siz=config["bot"]["roll"]["siz"], cnt=config["bot"]["roll"]["cnt"]
-)
-async def roll(
-    ctx: commands.Context,
-    siz: commands.Range[int, 2, 1000],
-    cnt: commands.Range[int, 1, 400] = 1,
-):
-    """Roll dice."""
-    result = [secrets.randbelow(siz) + 1 for _ in range(cnt)]
-    total = sum(result)
-    res_str = ", ".join([str(_) for _ in result])
-    await ctx.send(
-        f"You rolled {cnt}d{siz} and get a {total}!```{res_str}```",
-        ephemeral=True,
-    )
-
-
-@bot.hybrid_command(
-    name=config["bot"]["8ball"]["name"],
-    enabled=config["bot"]["8ball"]["enbl"],
-    hidden=config["bot"]["8ball"]["hide"],
-    help=config["bot"]["8ball"]["desc"],
-)
-@app_commands.guilds(*config["bot"]["bot-glds"])
-@app_commands.describe(qry=config["bot"]["8ball"]["qry"])
-async def eight_ball(ctx: commands.Context, *, qry: str = "Is it?"):
-    """Asks the magic 8-ball."""
-    result = secrets.choice(config["bot"]["8ball"]["msgs"])
-    await ctx.send(f"> {qry}\n{result}", ephemeral=True)
-
-
-@bot.hybrid_command(
-    name=config["bot"]["ping"]["name"],
-    enabled=config["bot"]["ping"]["enbl"],
-    hidden=config["bot"]["ping"]["hide"],
-    help=config["bot"]["ping"]["desc"],
-)
-@app_commands.guilds(*config["bot"]["bot-glds"])
-async def ping(ctx: commands.Context):
-    """Test the latency."""
-    result = math.ceil(bot.latency * 1000)
-    await ctx.send(f"Pong! The ping took {result} ms.", ephemeral=True)
-
-
-def setup():
-    """Start the bot."""
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    bot.run(token, log_handler=handler, log_level=(1 + quiet) * logging.DEBUG)
+    Args:
+        ctx: Context of the command.
+        gld: Guild to sync commands.
+    """
+    if gld is None:
+        await ctx.bot.tree.sync()
+    else:
+        await ctx.bot.tree.sync(guild=gld)
+    await ctx.send(f"Synced commands for {gld}!")

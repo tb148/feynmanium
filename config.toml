@@ -1,215 +1,29 @@
-[bot]
-log-file = "feynman.log"
-err-msgs = [
-    "What are you expecting me to say?",
-    "What am I expected to do then?",
-    "Wait what? Are you serious?",
+[feynmanium.base]
+exts = [
+    "feynmanium.cogs.calc",
+    "feynmanium.cogs.game",
+    "feynmanium.cogs.misc",
+    "feynmanium.cogs.trans"
 ]
-bot-exts = ["game", "calc", "trans"]
-bot-glds = [255467070777458688]
-rdy-msgs = [
+rdy = [
     "Feynman is wholly ready!",
     "Feynman is now waiting.",
     "Now running Feynman...",
     "Feynman is connected!",
     "INITIALIZED: FEYNMAN",
 ]
-help-len = 1000
-case-insv = true
-bot-desc = """Feynman - A Discord bot that works.
+
+[feynmanium.main]
+desc = """Feynman - A Discord bot that works.
 This bot is created by TonyBrown148."""
-ownr-ids = [728198677050425424]
-stat-msgs = [
-    "Try @Feynman help",
-    "Send @Feynman help",
-    "Type @Feynman help",
-    "PREFIX = MENTION",
-    "Mention me before commands",
-    "My prefix is my mention",
-    "with the Discord API",
-    "with Python",
-    "with discord.py",
-]
-stat-freq = 10.0
-
-[bot.roll]
-name = "roll"
-enbl = true
-hide = false
-desc = "Rolls dice"
-cnt = "The amount of dice"
-siz = "The size of each die"
-
-[bot.8ball]
-name = "8ball"
-enbl = true
-hide = false
-desc = "Asks the magic 8-ball"
-qry = "The question to ask"
-msgs = [
-    "It is certain.",
-    "It is decidedly so.",
-    "Without a doubt.",
-    "Yes definitely.",
-    "You may rely on it.",
-    "As I see it, yes.",
-    "Most likely.",
-    "Outlook good.",
-    "Yes.",
-    "Signs point to yes.",
-    "Reply hazy, try again.",
-    "Ask again later.",
-    "Better not tell you now.",
-    "Cannot predict now.",
-    "Concentrate and ask again.",
-    "Don't count on it.",
-    "My reply is no.",
-    "My sources say no.",
-    "Outlook not so good.",
-    "Very doubtful."
-]
-
-[bot.ping]
-name = "ping"
-enbl = true
-hide = false
-desc = "Tests the latency"
-
-[calc]
-name = "Mathematics"
-desc = "Mathematical commands"
+ownr = [728198677050425424]
 glds = [255467070777458688]
 
-[calc.simpl]
-name = "simpl"
-enbl = true
-hide = false
-desc = "Simplifies expressions"
-expr = "The expression to simplify"
+[feynmanium.cogs.calc]
+five = true
 
-[calc.expn]
-name = "expn"
-enbl = true
-hide = false
-desc = "Expands expressions"
-expr = "The expression to expand"
-
-[calc.fact]
-name = "fact"
-enbl = true
-hide = false
-desc = "Factors expressions"
-expr = "The expression to factor"
-
-[calc.apart]
-name = "apart"
-enbl = true
-hide = false
-desc = "Decomposes partial fractions"
-expr = "The expression to decompose"
-
-[calc.calc]
-name = "calc"
-enbl = true
-hide = false
-desc = "Does calculus"
-
-[calc.diff]
-name = "diff"
-enbl = true
-hide = false
-desc = "Differentiates"
-var = "The argument to differentiate"
-expr = "The function to differentiate"
-
-[calc.adiff]
-name = "adiff"
-enbl = true
-hide = false
-desc = "Integrates"
-var = "The argument to integrate"
-expr = "The function to integrate"
-
-[calc.limit]
-name = "limit"
-enbl = true
-hide = false
-desc = "Computes limits"
-pos = "The position to compute limits"
-var = "The argument to compute limits"
-expr = "The function to compute limits"
-
-[calc.solve]
-name = "solve"
-enbl = true
-hide = false
-desc = "Solves equations"
-var = "The variable to solve for"
-expr = "The function to solve"
-
-[calc.ineq]
-name = "ineq"
-enbl = true
-hide = false
-desc = "Solves inequalities"
-var = "The variable to solve for"
-expr = "The inequality to solve"
-
-[calc.roots]
-name = "roots"
-enbl = true
-hide = false
-desc = "Finds roots of polynomials"
-var = "The variable to solve"
-expr = "The polynomial to find roots"
-
-[calc.dsolv]
-name = "dsolv"
-enbl = true
-hide = false
-desc = "Solves differential equations"
-var = "The function to solve for"
-expr = "The differential equation to solve"
-
-[trans]
-name = "Translation"
-desc = "Translation commands"
-glds = [255467070777458688]
-
-[trans.trans]
-name = "trans"
-enbl = true
-hide = false
-desc = "Translates text"
-dest = "The language to translate to"
-src = "The language to translate from"
-text = "The text to translate"
-
-[trans.lang]
-name = "lang"
-enbl = true
-hide = false
-desc = "Detects language of text"
-text = "The text to detect language"
-
-[trans.code]
-name = "code"
-enbl = true
-hide = false
-desc = "Lists language codes"
-
-[game]
-name = "Chess"
-desc = "Some games to play."
-glds = [255467070777458688]
-
-[game.chess]
-name = "chess"
-enbl = true
-hide = false
-desc = "Plays chess"
-lvl = "The strength of the opponent"
-fst = "Whether to play first in game"
+[feynmanium.cogs.game]
+path = "./stockfish/stockfish_14_x64"
 card = [
     "The Fool",
     "The Magician",
@@ -235,15 +49,42 @@ card = [
     "The World",
 ]
 
-[game.anlys]
-name = "anlys"
-enbl = true
-hide = false
-desc = "Gets some analysis for chess"
-fen = "The FEN of the game"
-
-[game.game]
-name = "game"
-enbl = true
-hide = false
-desc = "Reads a PGN"
+[feynmanium.cogs.misc]
+err = [
+    "What are you expecting me to say?",
+    "What am I expected to do then?",
+    "Wait what? Are you serious?",
+]
+stat = [
+    "Try @Feynman help",
+    "Send @Feynman help",
+    "Type @Feynman help",
+    "PREFIX = MENTION",
+    "Mention me before commands",
+    "My prefix is my mention",
+    "with the Discord API",
+    "with Python",
+    "with discord.py",
+]
+ball = [
+    "It is certain.",
+    "It is decidedly so.",
+    "Without a doubt.",
+    "Yes definitely.",
+    "You may rely on it.",
+    "As I see it, yes.",
+    "Most likely.",
+    "Outlook good.",
+    "Yes.",
+    "Signs point to yes.",
+    "Reply hazy, try again.",
+    "Ask again later.",
+    "Better not tell you now.",
+    "Cannot predict now.",
+    "Concentrate and ask again.",
+    "Don't count on it.",
+    "My reply is no.",
+    "My sources say no.",
+    "Outlook not so good.",
+    "Very doubtful."
+]

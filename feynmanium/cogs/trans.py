@@ -1,72 +1,80 @@
-"""Translation commands."""
+"""This file is part of Feynmanium.
+
+Feynmanium is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of theLicense, or (at your option) any later
+version.
+
+Feynmanium is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with Feynmanium. If not, see <https://www.gnu.org/licenses/>.
+"""
 import googletrans
-from discord import app_commands
-from discord.ext import commands  # type: ignore[attr-defined]
+from discord.ext import commands
 
 from .. import base
 
-config = base.config
-trans = googletrans.Translator()
 
+class TransCog(commands.Cog, name="Translation"):
+    """Translation commands.
 
-class TransCog(  # type: ignore[call-arg]
-    commands.Cog,
-    name=config["trans"]["name"],
-    description=config["trans"]["desc"],
-):
-    """Translation commands."""
+    Attributes:
+        bot: Bot that contains the cog.
+        api: Translator of the cog.
+    """
 
     def __init__(self, bot: commands.AutoShardedBot):
-        """Initialize the cog."""
-        self.bot = bot
+        """Initialize the cog with a bot.
 
-    @commands.hybrid_command(
-        name=config["trans"]["trans"]["name"],
-        enabled=config["trans"]["trans"]["enbl"],
-        hidden=config["trans"]["trans"]["hide"],
-        help=config["trans"]["trans"]["desc"],
-    )
-    @app_commands.guilds(*config["trans"]["glds"])
-    @app_commands.describe(
-        dest=config["trans"]["trans"]["dest"],
-        src=config["trans"]["trans"]["src"],
-        text=config["trans"]["trans"]["text"],
-    )
+        Args:
+            bot: Bot that contains the cog.
+        """
+        self.bot = bot
+        self.api = googletrans.Translator()
+
+    @commands.hybrid_command()
     async def trans(
-        self, ctx: commands.Context, dest: str, src: str = "auto", *, text: str
+        self,
+        ctx: commands.Context[base.Bot],
+        dest: str,
+        src: str = "auto",
+        *,
+        text: str,
     ):
-        """Translate text."""
-        result = trans.translate(text, dest, src)
-        res_src = googletrans.LANGUAGES[result.src]
+        """Translates text.
+
+        Args:
+            ctx: Context of the command.
+            dest: Language to translate to.
+            src: Language to translate from.
+            text: Text to translate
+        """
+        result = self.api.translate(text, dest, src)
+        res_src = googletrans.LANGUAGES[result.src.lower()].title()
         res_origin = result.origin
-        res_dest = googletrans.LANGUAGES[result.dest]
+        res_dest = googletrans.LANGUAGES[result.dest.lower()].title()
         res_text = result.text
         await ctx.send(
             f"{res_src}:\n> {res_origin}\n{res_dest}:\n> {res_text}",
             ephemeral=True,
         )
 
-    @commands.hybrid_command(
-        name=config["trans"]["lang"]["name"],
-        enabled=config["trans"]["lang"]["enbl"],
-        hidden=config["trans"]["lang"]["hide"],
-        help=config["trans"]["lang"]["desc"],
-    )
-    @app_commands.guilds(*config["trans"]["glds"])
-    @app_commands.describe(text=config["trans"]["lang"]["text"])
-    async def lang(self, ctx: commands.Context, *, text: str):
-        """Detect language of text."""
-        result = trans.detect(text)
-        res_lang = googletrans.LANGUAGES[result.lang]
+    @commands.hybrid_command()
+    async def lang(self, ctx: commands.Context[base.Bot], *, text: str):
+        """Detect language of text.
+
+        Args:
+            ctx: Context of the command.
+            text: Text to detect its language.
+        """
+        result = self.api.detect(text)
+        res_lang = googletrans.LANGUAGES[result.lang.lower()].title()
         await ctx.send(f"{res_lang}:\n> {text}", ephemeral=True)
 
-    @commands.hybrid_command(
-        name=config["trans"]["code"]["name"],
-        enabled=config["trans"]["code"]["enbl"],
-        hidden=config["trans"]["code"]["hide"],
-        help=config["trans"]["code"]["desc"],
-    )
-    @app_commands.guilds(*config["trans"]["glds"])
+    @commands.hybrid_command()
     async def code(self, ctx):
         """List language codes."""
         result = ", ".join(
@@ -79,6 +87,19 @@ class TransCog(  # type: ignore[call-arg]
         await ctx.send(f"Available language codes:\n{result}", ephemeral=True)
 
 
-async def setup(bot):
-    """Set up the extension."""
-    await bot.add_cog(TransCog(bot))
+async def setup(bot: base.Bot):
+    """Set up the extension.
+
+    Args:
+        bot: Bot that loads the extension.
+    """
+    await bot.add_cog(TransCog(bot), guilds=list(bot.glds))
+
+
+async def teardown(bot: base.Bot):
+    """Tear down the extension.
+
+    Args:
+        bot: Bot that unloads the extension.
+    """
+    await bot.remove_cog("Translation", guilds=list(bot.glds))
