@@ -39,7 +39,7 @@ isort = { extras = [
 types-toml = "^0.10.8"
 pylama = { extras = ["all"], version = "^8.4.1" }
 pre-commit = "^2.20.0"
-pyright = "^1.1.267"
+pyright = "^1.1.268"
 
 [tool.poetry.scripts]
 feynmanium = "feynmanium.run:main"
