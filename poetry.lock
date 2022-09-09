@@ -1194,7 +1194,7 @@ python-versions = "*"
 
 [[package]]
 name = "sympy"
-version = "1.11"
+version = "1.11.1"
 description = "Computer algebra system (CAS) in Python"
 category = "main"
 optional = false
@@ -2255,8 +2255,8 @@ snowballstemmer = [
     {file = "snowballstemmer-2.2.0.tar.gz", hash = "sha256:09b16deb8547d3412ad7b590689584cd0fe25ec8db3be37788be3810cbf19cb1"},
 ]
 sympy = [
-    {file = "sympy-1.11-py3-none-any.whl", hash = "sha256:b53069f5f30e4a4690b57cdb8e3d0d9065fff42627239db718214f804e442481"},
-    {file = "sympy-1.11.tar.gz", hash = "sha256:1fe96b4c56bb7a7630cdf150a6cd98bc97a79e6be233e30502aba1cf54dee33d"},
+    {file = "sympy-1.11.1-py3-none-any.whl", hash = "sha256:938f984ee2b1e8eae8a07b884c8b7a1146010040fccddc6539c54f401c8f6fcf"},
+    {file = "sympy-1.11.1.tar.gz", hash = "sha256:e32380dce63cb7c0108ed525570092fd45168bdae2faa17e528221ef72e88658"},
 ]
 tinycss2 = [
     {file = "tinycss2-1.1.1-py3-none-any.whl", hash = "sha256:fe794ceaadfe3cf3e686b22155d0da5780dd0e273471a51846d0a02bc204fec8"},
