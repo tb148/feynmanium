@@ -48,7 +48,7 @@ async def get_move(path: str, board: chess.Board, level: int) -> chess.Move:
     return chess.Move.null()
 
 
-def get_svg(board: chess.Board, color: chess.Color) -> str:
+def get_svg(board: chess.Board, color: chess.Color) -> typing.Any:
     """Renders the SVG of the board.
 
     Args:
@@ -58,12 +58,13 @@ def get_svg(board: chess.Board, color: chess.Color) -> str:
     Returns:
         The rendered SVG.
     """
-    return svg.board(
+    result = svg.board(
         board,
         orientation=color,
         lastmove=(None if len(board.move_stack) == 0 else board.peek()),
         check=(board.king(board.turn) if board.is_check() else None),
     )
+    return cairosvg.svg2png(result)
 
 
 class ChessView(ui.View):
@@ -205,10 +206,7 @@ class ChessView(ui.View):
             content=f"`{fen}`",
             attachments=[
                 discord.File(
-                    io.BytesIO(
-                        cairosvg.svg2png(get_svg(self.board, self.color))
-                    ),
-                    "board.png",
+                    io.BytesIO(get_svg(self.board, self.color)), "board.png"
                 ),
                 discord.File(
                     io.BytesIO(bytes(str(self.get_pgn()), "utf-8")), "game.pgn"
@@ -272,24 +270,12 @@ class GameView(ui.View):
         await interaction.edit_original_response(
             attachments=[
                 discord.File(
-                    io.BytesIO(
-                        cairosvg.svg2png(
-                            get_svg(self.node.board(), self.node.turn())
-                        )
-                    ),
+                    io.BytesIO(get_svg(self.node.board(), self.node.turn())),
                     "board.png",
                 )
             ],
             view=self,
         )
-
-    async def on_timeout(self):
-        """Disables all items on timeout."""
-        for item in self.children:
-            if isinstance(item, (ui.Button, ui.Select)):
-                item.disabled = True
-        if self.msg is not None:
-            await self.msg.edit(view=self)
 
     @ui.button(label="<<", style=discord.ButtonStyle.primary, row=0)
     async def root(self, interaction: discord.Interaction, button: ui.Button):
@@ -424,10 +410,7 @@ class GameCog(commands.Cog, name="Chessboard"):
         view.msg = await ctx.send(
             f"`{fen}`",
             files=[
-                discord.File(
-                    io.BytesIO(cairosvg.svg2png(get_svg(view.board, fst))),
-                    "board.png",
-                ),
+                discord.File(io.BytesIO(get_svg(view.board, fst)), "board.png"),
                 discord.File(
                     io.BytesIO(bytes(str(view.get_pgn()), "utf-8")), "game.pgn"
                 ),
@@ -470,8 +453,7 @@ class GameCog(commands.Cog, name="Chessboard"):
         await ctx.send(
             f"White has an advantage of {result} ({wdl}%).",
             file=discord.File(
-                io.BytesIO(cairosvg.svg2png(get_svg(board, board.turn))),
-                "board.png",
+                io.BytesIO(get_svg(board, board.turn)), "board.png"
             ),
             ephemeral=True,
         )
@@ -495,11 +477,7 @@ class GameCog(commands.Cog, name="Chessboard"):
         view = GameView(node, ctx=ctx)
         view.msg = await ctx.send(
             file=discord.File(
-                io.BytesIO(
-                    cairosvg.svg2png(
-                        get_svg(view.node.board(), view.node.turn())
-                    )
-                ),
+                io.BytesIO(get_svg(view.node.board(), view.node.turn())),
                 "board.png",
             ),
             view=view,

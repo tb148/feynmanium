@@ -29,8 +29,7 @@ uvloop = "^0.16.0"
 "discord.py" = "^2.0.0"
 tomlkit = "^0.11.4"
 
-[tool.poetry.dev-dependencies]
-poetry = "^1.1.15"
+[tool.poetry.group.dev.dependencies]
 black = ">=22.3.0"
 isort = { extras = [
     "requirements_deprecated_finder",
@@ -38,8 +37,6 @@ isort = { extras = [
 ], version = "^5.10.1" }
 types-toml = "^0.10.8"
 pylama = { extras = ["all"], version = "^8.4.1" }
-pre-commit = "^2.20.0"
-pyright = "^1.1.269"
 
 [tool.poetry.scripts]
 feynmanium = "feynmanium.run:main"
@@ -54,9 +51,6 @@ convention = "google"
 
 [tool.pylint.format]
 max-line-length = 80
-
-[tool.pyright]
-typeCheckingMode = "basic"
 
 [build-system]
 requires = ["poetry-core"]
