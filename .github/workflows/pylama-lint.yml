@@ -20,6 +20,6 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install
-      - name: Analyse the code with Pylama
+      - name: Analyze the code with Pylama
         run: |
           poetry run pylama feynmanium
