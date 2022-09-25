@@ -1,0 +1,21 @@
+name: Black
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check code format
+        uses: psf/black@stable
+      - name: Format code
+        uses: psf/black@stable
+        if: failure()
+        with:
+          options: ""
+      - name: Commit changed files
+        if: failure()
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "style: format code"
